@@ -1,0 +1,134 @@
+[
+  {
+    "record": "velvet-after-midnight",
+    "title": "Slow Jam",
+    "composer": "Kevin MacLeod",
+    "source": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1600015",
+    "download": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Slow%20Jam.mp3",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "changes": "Split into six sequential demo chapters and re-encoded as MP3. Fictional packaging; no artist endorsement implied.",
+    "durations": [
+      [
+        44,
+        44,
+        44
+      ],
+      [
+        44,
+        44,
+        45.67
+      ]
+    ]
+  },
+  {
+    "record": "second-skin",
+    "title": "Clean Soul",
+    "composer": "Kevin MacLeod",
+    "source": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1300033",
+    "download": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Clean%20Soul.mp3",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "changes": "Split into six sequential demo chapters and re-encoded as MP3. Fictional packaging; no artist endorsement implied.",
+    "durations": [
+      [
+        51,
+        51,
+        51
+      ],
+      [
+        51,
+        51,
+        51.73
+      ]
+    ]
+  },
+  {
+    "record": "concrete-bloom",
+    "title": "Cool Rock",
+    "composer": "Kevin MacLeod",
+    "source": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100279",
+    "download": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Cool%20Rock.mp3",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "changes": "Split into six sequential demo chapters and re-encoded as MP3. Fictional packaging; no artist endorsement implied.",
+    "durations": [
+      [
+        34,
+        34,
+        34
+      ],
+      [
+        34,
+        34,
+        39.38
+      ]
+    ]
+  },
+  {
+    "record": "rooms-we-left",
+    "title": "Bummin on Tremelo",
+    "composer": "Kevin MacLeod",
+    "source": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1700032",
+    "download": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Bummin%20on%20Tremelo.mp3",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "changes": "Split into six sequential demo chapters and re-encoded as MP3. Fictional packaging; no artist endorsement implied.",
+    "durations": [
+      [
+        32,
+        32,
+        32
+      ],
+      [
+        32,
+        32,
+        32.05
+      ]
+    ]
+  },
+  {
+    "record": "sunday-geometry",
+    "title": "Backed Vibes (clean)",
+    "composer": "Kevin MacLeod",
+    "source": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100479",
+    "download": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Backed%20Vibes%20Clean.mp3",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "changes": "Split into six sequential demo chapters and re-encoded as MP3. Fictional packaging; no artist endorsement implied.",
+    "durations": [
+      [
+        38,
+        38,
+        38
+      ],
+      [
+        38,
+        38,
+        38.41
+      ]
+    ]
+  },
+  {
+    "record": "parallel-lines",
+    "title": "Cipher",
+    "composer": "Kevin MacLeod",
+    "source": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100844",
+    "download": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Cipher2.mp3",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "changes": "Split into six sequential demo chapters and re-encoded as MP3. Fictional packaging; no artist endorsement implied.",
+    "durations": [
+      [
+        38,
+        38,
+        38
+      ],
+      [
+        38,
+        38,
+        41.26
+      ]
+    ]
+  }
+]
