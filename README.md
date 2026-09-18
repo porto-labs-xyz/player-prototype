@@ -4,7 +4,8 @@ A responsive, interactive web prototype and wireframe for the pitch deck's propo
 
 ## Experience
 
-- Discover a record, inspect its track order and select side A or B.
+- Browse upright vinyl spines in Discovery and My shelf. Press a spine to pull out an animated gatefold sleeve with front artwork, a designed back cover and liner notes. Put back or Escape closes it. On phones the sleeve unfolds vertically so the artwork and text stay readable.
+- Inspect the track order and select side A or B directly from the sleeve.
 - Drop the needle to play original demo audio. Tracks advance in order within the chosen side.
 - Pause preserves position. Lift needle resets the side. Streaming deliberately has no track skipping or seeking.
 - Start with all three demo records saved on the browser-local shelf. Existing visitors receive this starter collection once; later removals persist. Reset restores the starter collection and clears demo purchases.
