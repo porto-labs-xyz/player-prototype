@@ -7,9 +7,9 @@ A responsive, interactive web prototype and wireframe for the pitch deck's propo
 - Browse upright vinyl spines in Discovery and My shelf. Press a spine to pull out an animated gatefold sleeve with front artwork, a designed back cover and liner notes. Put back or Escape closes it. On phones the sleeve unfolds vertically so the artwork and text stay readable.
 - Inspect the track order and select side A or B directly from the sleeve.
 - Drop the needle to play original demo audio. Tracks advance in order within the chosen side.
-- Pause preserves position. Lift needle resets the side. Streaming deliberately has no track skipping or seeking.
+- Pause preserves position. Lift needle resets the side. Every album supports direct track selection and previous/next navigation. Seeking within a track remains a demo-ownership feature.
 - Start with all nine demo records saved on the browser-local shelf. Existing visitors receive this starter collection once; later removals persist. Reset restores the starter collection and clears demo purchases.
-- Confirm a clearly labelled demonstration purchase to unlock full track navigation, seeking and a downloadable archive of the demo audio. No payment, purchase contract or commercial licence is created.
+- Confirm a clearly labelled demonstration purchase to unlock seeking and a downloadable archive of the demo audio. No payment, purchase contract or commercial licence is created.
 - Explore the subscription allocation model separately from record purchases. The model is 70% rights holders, 25% operators and 5% protocol treasury. Rights-holder amounts follow registered rights splits. Beta settlement is daily, not immediate per play.
 
 ## Deliverables
@@ -21,7 +21,7 @@ A responsive, interactive web prototype and wireframe for the pitch deck's propo
 
 ## Source and evidence
 
-Visual foundation: Porto Design System 0.1.0-dev.1, its released tokens, approved mark and architectural artwork; current design notes and brand guidance. The core listening and ownership interactions follow the private pitch deck's product concept. The private deck, personal material and commercial terms are not included here.
+Visual foundation: Porto Design System 0.1.0-dev.1, its released tokens, approved mark and architectural artwork; current design notes and brand guidance. The record-led listening and ownership interactions originate in the private pitch deck. Track jumping is a subsequent explicit user-requested prototype change. The private deck, personal material and commercial terms are not included here.
 
 Product mechanics: Porto whitepaper and PIP-5 for listener attribution, rights-holder qualification and daily Beta settlement. The application does not perform network streaming attestations or accrue or settle money. Purchase licensing, fees and settlement remain open product questions.
 
@@ -59,3 +59,10 @@ Each recording is split into six consecutive chapters and re-encoded as 160kbps 
 `dist/audio-credits.json` records each original track page, direct download, licence URL, changes and chapter durations. `dist/credits.html` provides visible attribution and freely accessible downloads independent of simulated ownership. Each new download ZIP includes all six chapters and ATTRIBUTION.txt, retaining the creator, source, licence and modification notice. Liner notes, record details, listening view and persistent player distinguish real audio from fictional packaging. No endorsement is implied.
 
 Music source: https://incompetech.com/music/royalty-free/ . Licence: https://creativecommons.org/licenses/by/4.0/ . Verified 19 September 2026.
+
+
+## Track navigation and node indicator, 19 September 2026
+
+The user explicitly requested track jumping on every album. This supersedes the prototype's earlier purchase-only track navigation. All sleeve, album-detail and listening track lists are interactive without purchase; previous/next controls move across sides within the current album and stop at album boundaries. Automatic playback still progresses through the selected side. Demo ownership now adds seeking within tracks and audio downloads.
+
+Play/pause uses fine-line SVG controls in a quiet square frame with paper/coral states. The persistent player shows `LIVE · LND-001` with a softly pulsing red dot only after an audio `playing` event. Pausing, waiting, stalling, loading, errors and side completion remove the live pulse. The badge visibly says DEMO NODE; the about panel explains that the node is simulated and audio comes from demo files. This is not a connection to a live Porto node. Reduced-motion preferences keep the active dot steady.
