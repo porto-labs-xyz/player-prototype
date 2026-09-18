@@ -7,7 +7,7 @@ A responsive, interactive web prototype and wireframe for the pitch deck's propo
 - Discover a record, inspect its track order and select side A or B.
 - Drop the needle to play original demo audio. Tracks advance in order within the chosen side.
 - Pause preserves position. Lift needle resets the side. Streaming deliberately has no track skipping or seeking.
-- Save records to a browser-local shelf.
+- Start with all three demo records saved on the browser-local shelf. Existing visitors receive this starter collection once; later removals persist. Reset restores the starter collection and clears demo purchases.
 - Confirm a clearly labelled demonstration purchase to unlock full track navigation, seeking and a downloadable archive of the demo audio. No payment, purchase contract or commercial licence is created.
 - Explore the subscription allocation model separately from record purchases. The model is 70% rights holders, 25% operators and 5% protocol treasury. Rights-holder amounts follow registered rights splits. Beta settlement is daily, not immediate per play.
 
@@ -35,3 +35,7 @@ The original audio is deterministic synthesis created by `create-demo-audio.py`.
 ## Run
 
 Serve the `dist` directory with any static HTTP server. No external backend is required. Typography uses DM Sans and IBM Plex Mono with system fallbacks. Browser storage is only for the local demo shelf.
+
+## Sharing
+
+The web prototype is also hosted at https://porto-listening-room.vercel.app with wireframes at /wireframe.html. This deployment is a publicly accessible web demo. It is not yet an installable PWA, native iOS application, TestFlight build or App Clip.
