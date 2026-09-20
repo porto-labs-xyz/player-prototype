@@ -6,7 +6,13 @@ The app is static HTML, CSS and JavaScript. `app.js` renders hash routes into th
 
 Discover filters the catalogue. My shelf combines browser-local saved and owned IDs. Record detail exposes side and track selection. Listening focuses the current record. Support explains the proposed subscription allocation. Wireframes include an annotated page and the interactive `?wireframe=1` mode.
 
-`porto-saved` and `porto-owned` store arrays in localStorage. `porto-shelf-seed-v1` seeds the original collection once; `porto-catalog-v2` adds the six later records once. `porto-catalog-v3` adds only the five artist editions once, preserving older removals and demo purchases. Removals persist after migration. Reset restores the whole collection and clears demo ownership. Storage is not an account or backend purchase record.
+`porto-saved` and `porto-owned` store arrays in localStorage. `porto-shelf-seed-v1` seeds the original collection once; `porto-catalog-v2` adds the six later records once. `porto-catalog-v3` adds only the five artist editions once, preserving older removals and demo purchases. Removals persist after migration. Reset restores the whole collection and clears demo ownership. Storage is not an account or backend purchase record. Collection state uses localStorage, with no cookie or server account required. Records stay on the same browser and origin until removed or browser data is cleared. IDs are validated and deduplicated; saved and owned values are parsed independently so one malformed value does not reset the other. Rendering does not write storage. User changes persist immediately, and storage events update other open tabs. If storage is blocked or full, the app keeps the change for the current visit and explicitly reports that it was not saved persistently.
+
+## Collection actions
+
+Use the full Add to collection label as a primary action on artist cards, every record in the index, sleeves, record details and listening. Keep the same action in the fixed player at desktop and mobile sizes. The selected record is shown as In collection after saving, with an accessible remove label. Owned demo copies remain included and show a disabled collected state; a save action never grants ownership. My collection shows the union of saved and demo-owned IDs.
+
+Saving from a music screen updates the collection controls in place, preserving keyboard focus and current playback. Removing from the collection view rerenders the shelf and focuses the main region. The existing fourteen starter records remain saved; this change does not clear or reseed anyone’s collection.
 
 ## Playback
 

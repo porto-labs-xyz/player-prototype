@@ -5,12 +5,12 @@ import path from 'node:path';
 const root=path.resolve(import.meta.dirname,'..');
 const editionSource=fs.readFileSync(path.join(root,'dist/artist-editions.js'),'utf8');
 const playerSource=fs.readFileSync(path.join(root,'dist/app.js'),'utf8');
-function session(initial={}){
- const elements=new Map(),storage=new Map(Object.entries(initial));
+function session(initial={},options={}){
+ const elements=new Map(),storage=new Map(Object.entries(initial)),windowEvents={};
  const element=id=>{if(!elements.has(id))elements.set(id,{id,innerHTML:'',textContent:'',value:'',src:'',style:{},dataset:{},currentTime:0,ended:false,events:{},classList:{toggle(){},add(){},remove(){}},setAttribute(k,v){this[k]=v},getAttribute(k){return this[k]},addEventListener(k,v){this.events[k]=v},load(){},pause(){this.events.pause?.()},async play(){this.events.play?.();this.events.playing?.()},focus(){},showModal(){this.open=true},close(){this.open=false}});return elements.get(id)};
- const context=vm.createContext({console,URLSearchParams,setTimeout:()=>0,clearTimeout(){},location:{hash:'',search:''},window:{addEventListener(){},scrollTo(){}},document:{querySelector:element,querySelectorAll:()=>[],addEventListener(){},body:element('body')},localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)}});
+ const context=vm.createContext({console,URLSearchParams,setTimeout:()=>0,clearTimeout(){},location:{hash:'',search:''},window:{addEventListener:(name,fn)=>windowEvents[name]=fn,scrollTo(){}},document:{querySelector:element,querySelectorAll:()=>[],addEventListener(){},body:element('body')},localStorage:{getItem:k=>{if(options.blockRead)throw Error("storage blocked");return storage.get(k)??null},setItem:(k,v)=>{if(options.blockWrite)throw Error("storage full");storage.set(k,v)}}});
  vm.runInContext(editionSource+'\n'+playerSource,context);
- return {context,elements,storage,run:code=>vm.runInContext(code,context)};
+ return {context,elements,storage,windowEvents,run:code=>vm.runInContext(code,context)};
 }
 const s=session();
 assert.equal(s.run('records.length'),14);
@@ -56,3 +56,35 @@ const credits=JSON.parse(fs.readFileSync(path.join(root,'dist/audio-credits.json
 const html=fs.readFileSync(path.join(root,'dist/credits.html'),'utf8');
 for(const c of credits){assert(html.includes(c.source),c.title);assert(html.includes(`id="${c.record}"`),c.record)}
 console.log('PASS: 14 releases, 69 audio files, 15 distinct new recordings; asset references, attribution, shelf migration, search, cross-side navigation and side completion. DOM/audio events simulated, not browser playback.');
+
+// Collection actions persist, keep ownership separate and never touch playback.
+const flags={'porto-shelf-seed-v1':'1','porto-catalog-v2':'1','porto-catalog-v3':'1'};
+const collection=session({...flags,'porto-saved':'[]','porto-owned':'[]'});
+collection.run("toggleCollection('sugar-circuit')");
+assert.deepEqual(JSON.parse(collection.storage.get('porto-saved')),['sugar-circuit']);
+assert.equal(collection.run('owned.length'),0);
+assert.equal(collection.run('playing'),false);
+assert.equal(collection.elements.get('#audio').src,'');
+const restored=session(Object.fromEntries(collection.storage));
+assert.equal(restored.run("isCollected(getRecord('sugar-circuit'))"),true);
+restored.run("toggleCollection('sugar-circuit')");
+assert.deepEqual(JSON.parse(restored.storage.get('porto-saved')),[]);
+assert.equal(session(Object.fromEntries(restored.storage)).run('saved.length'),0);
+collection.storage.set('porto-saved','["borrowed-sun"]');
+collection.windowEvents.storage({key:'porto-saved'});
+assert.equal(collection.run('saved[0]'),'borrowed-sun');
+const corrupt=session({...flags,'porto-saved':'not json','porto-owned':'["second-skin"]'});
+assert.equal(corrupt.run('owned[0]'),'second-skin');
+const invalid=session({...flags,'porto-saved':'["sugar-circuit","sugar-circuit","missing",42]'});
+assert.equal(invalid.run('saved.length'),1);
+const blocked=session({...flags,'porto-saved':'[]'}, {blockWrite:true});
+blocked.run("toggleCollection('sugar-circuit')");
+assert.equal(blocked.run('saved.length'),1);
+assert.equal(blocked.storage.get('porto-saved'),'[]');
+assert.match(blocked.elements.get('#toast').textContent,/this visit only/);
+assert.equal(session({}, {blockRead:true,blockWrite:true}).run('storageAvailable'),false);
+const ownedCopy=session({...flags,'porto-saved':'[]','porto-owned':'["second-skin"]'});
+ownedCopy.run("toggleCollection('second-skin')");
+assert.equal(ownedCopy.run("isCollected(getRecord('second-skin'))"),true);
+assert.match(ownedCopy.run("saveButton(getRecord('second-skin'))"),/disabled/);
+console.log('PASS: add/remove/reload, empty collections, independent ownership, cross-tab storage events, invalid data and blocked-storage feedback.');

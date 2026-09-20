@@ -29,7 +29,7 @@ Open http://localhost:8064. No package installation or build step is needed. The
 
 Fourteen records are saved initially. Five new artist editions lead discovery with original generated portraits across Hyperpop, Indie, Alternative, Rock and R&B. Their fifteen distinct full-length instrumental recordings add varied tempos and textures; genre labels describe fictional artist identities, with the real music credited separately. Selecting a narrow spine opens the front/back sleeve or liner notes. Any track can be selected without purchase; previous/next cross sides within the album. Automatic playback continues through the chosen side and stops at its end. Pause preserves position; lift needle resets the side.
 
-Demo ownership adds seeking and downloads. Browser-local saved and owned records persist. The red `LIVE · LND-001` indicator follows audio playback and visibly says DEMO NODE. It does not establish a connection to a Porto node.
+Add to collection is a primary action on artist cards, the record index, sleeves, record details, the listening screen and the persistent player. Saved records show In collection. Collections persist in browser local storage and synchronize across tabs on the same origin. Demo ownership adds seeking and downloads; saving a record is free and does not grant ownership. Existing starter records, removals and demo purchases are preserved. The red `LIVE · LND-001` indicator follows audio playback and visibly says DEMO NODE. It does not establish a connection to a Porto node.
 
 ## Files
 
