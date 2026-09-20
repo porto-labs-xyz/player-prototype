@@ -28,7 +28,7 @@ Three releases use original synthesized 24-second WAV studies. Six use Kevin Mac
 
 ## Hosting
 
-The same `dist` directory can be served locally, by Vercel or Sites. Vercel uses `vercel.json`; Sites uses the existing `.openai/hosting.json`. Keep that Sites project association intact. GitHub is the source repository and does not deploy the app by itself. Do not commit credentials, `.vercel`, private decks or machine-specific paths.
+Vercel is the only deployment target for this prototype: https://porto-listening-room.vercel.app. Deploy the existing linked Vercel project using `vercel.json`, with `dist` as its output directory. Local HTTP serving remains available for development. Do not recreate an OpenAI Sites hosting association or publish updates there. GitHub is the source repository; its About website points to the Vercel URL. A source push alone does not establish a successful deployment. Verify the Vercel production alias after publishing. Do not commit credentials, `.vercel`, private decks or machine-specific paths.
 
 ## Evidence limits
 

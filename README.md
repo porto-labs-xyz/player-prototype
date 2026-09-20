@@ -4,6 +4,8 @@ A working record-led listening room: a loaded vinyl shelf, unfolding sleeves, al
 
 [Open the demo](https://porto-listening-room.vercel.app) · [Wireframes](https://porto-listening-room.vercel.app/wireframe.html) · [Music credits](https://porto-listening-room.vercel.app/credits.html) · [Figma library](https://www.figma.com/design/i3K26qDEgyT7BcM9jD56rV/Porto-DS-Library)
 
+Vercel is the only deployment target. Use the demo link above for reviews and investor walkthroughs.
+
 ## Start locally
 
 ```sh
