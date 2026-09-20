@@ -1,0 +1,58 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import path from 'node:path';
+const root=path.resolve(import.meta.dirname,'..');
+const editionSource=fs.readFileSync(path.join(root,'dist/artist-editions.js'),'utf8');
+const playerSource=fs.readFileSync(path.join(root,'dist/app.js'),'utf8');
+function session(initial={}){
+ const elements=new Map(),storage=new Map(Object.entries(initial));
+ const element=id=>{if(!elements.has(id))elements.set(id,{id,innerHTML:'',textContent:'',value:'',src:'',style:{},dataset:{},currentTime:0,ended:false,events:{},classList:{toggle(){},add(){},remove(){}},setAttribute(k,v){this[k]=v},getAttribute(k){return this[k]},addEventListener(k,v){this.events[k]=v},load(){},pause(){this.events.pause?.()},async play(){this.events.play?.();this.events.playing?.()},focus(){},showModal(){this.open=true},close(){this.open=false}});return elements.get(id)};
+ const context=vm.createContext({console,URLSearchParams,setTimeout:()=>0,clearTimeout(){},location:{hash:'',search:''},window:{addEventListener(){},scrollTo(){}},document:{querySelector:element,querySelectorAll:()=>[],addEventListener(){},body:element('body')},localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)}});
+ vm.runInContext(editionSource+'\n'+playerSource,context);
+ return {context,elements,storage,run:code=>vm.runInContext(code,context)};
+}
+const s=session();
+assert.equal(s.run('records.length'),14);
+assert.equal(JSON.parse(s.storage.get('porto-saved')).length,14);
+assert.equal(s.run('artistEditions.length'),5);
+assert.equal(s.run('artistEditions.flatMap(r=>r.tracks.flat()).length'),15);
+assert.equal(s.run('new Set(artistEditions.flatMap(r=>r.tracks.flat())).size'),15);
+for(const r of s.run('records')){
+ assert.equal(r.tracks.length,2);
+ for(const [side,tracks] of r.tracks.entries())for(const [i,title] of tracks.entries()){
+  assert(title);
+  const file=`${r.id}-${side?'b':'a'}-${i+1}.${r.audioExt||'wav'}`;
+  assert(fs.statSync(path.join(root,'dist/assets',file)).size>1000, file);
+ }
+ assert(fs.existsSync(path.join(root,'dist/assets',r.art)),r.art);
+ assert(fs.existsSync(path.join(root,'dist/assets',`${r.id}-demo.zip`)),r.id);
+ assert(!s.run(`detail(getRecord('${r.id}'))`).includes('undefined'));
+ assert(!s.run(`sleeveNotes(getRecord('${r.id}'))`).includes('undefined'));
+}
+// Returning users receive only this edition's five records; old removals and ownership survive.
+const returning=session({'porto-shelf-seed-v1':'1','porto-catalog-v2':'1','porto-saved':'["after-rain"]','porto-owned':'["second-skin"]'});
+assert.equal(JSON.parse(returning.storage.get('porto-saved')).length,6);
+assert.deepEqual(JSON.parse(returning.storage.get('porto-owned')),['second-skin']);
+returning.run("saved=saved.filter(id=>id!=='sugar-circuit');persist()");
+const repeat=session(Object.fromEntries(returning.storage));
+assert(!JSON.parse(repeat.storage.get('porto-saved')).includes('sugar-circuit'));
+// Variable side lengths: new EPs have two A tracks, one B track.
+s.run("selectTrack('sugar-circuit',0,1);stepTrack(1)");
+assert.equal(s.run('side'),1);assert.equal(s.run('track'),0);
+s.run('stepTrack(1)');assert.equal(s.run('side'),1);assert.equal(s.run('track'),0);
+s.run('stepTrack(-1)');assert.equal(s.run('side'),0);assert.equal(s.run('track'),1);
+s.run("selectTrack('sugar-circuit',0,0)");s.elements.get('#audio').events.ended();
+assert.equal(s.run('track'),1);
+s.elements.get('#audio').events.ended();
+assert.equal(s.run('track'),1);assert.equal(s.run('playing'),false);
+s.run("selectTrack('sugar-circuit',1,0)");s.elements.get('#audio').events.ended();
+assert.equal(s.run('track'),0);assert.equal(s.run('playing'),false);
+// Existing three-track sides continue to work.
+s.run("selectTrack('after-rain',0,1)");s.elements.get('#audio').events.ended();assert.equal(s.run('track'),2);
+s.run("filter='All';query='Hyperpop'");assert.equal(s.run('filteredRecords().length'),1);
+s.run("query='Dirt Rhodes'");assert.equal(s.run('filteredRecords()[0].id'),'after-the-blue');
+const credits=JSON.parse(fs.readFileSync(path.join(root,'dist/audio-credits.json'),'utf8'));
+const html=fs.readFileSync(path.join(root,'dist/credits.html'),'utf8');
+for(const c of credits){assert(html.includes(c.source),c.title);assert(html.includes(`id="${c.record}"`),c.record)}
+console.log('PASS: 14 releases, 69 audio files, 15 distinct new recordings; asset references, attribution, shelf migration, search, cross-side navigation and side completion. DOM/audio events simulated, not browser playback.');

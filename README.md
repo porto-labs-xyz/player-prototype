@@ -25,7 +25,7 @@ Open http://localhost:8064. No package installation or build step is needed. The
 
 ## Current behaviour
 
-Nine records are saved initially. Selecting a narrow spine opens the front/back sleeve or liner notes. Any track can be selected without purchase; previous/next cross sides within the album. Automatic playback continues through the chosen side and stops at its end. Pause preserves position; lift needle resets the side.
+Fourteen records are saved initially. Five new artist editions lead discovery with original generated portraits across Hyperpop, Indie, Alternative, Rock and R&B. Their fifteen distinct full-length instrumental recordings add varied tempos and textures; genre labels describe fictional artist identities, with the real music credited separately. Selecting a narrow spine opens the front/back sleeve or liner notes. Any track can be selected without purchase; previous/next cross sides within the album. Automatic playback continues through the chosen side and stops at its end. Pause preserves position; lift needle resets the side.
 
 Demo ownership adds seeking and downloads. Browser-local saved and owned records persist. The red `LIVE · LND-001` indicator follows audio playback and visibly says DEMO NODE. It does not establish a connection to a Porto node.
 
@@ -35,14 +35,17 @@ Demo ownership adds seeking and downloads. Browser-local saved and owned records
 | --- | --- |
 | `dist/index.html` | Application shell and persistent player |
 | `dist/app.js` | Catalogue, routes, playback and local state |
+| `dist/artist-editions.js` | Five fictional artist editions and their fifteen credited recordings |
 | `dist/styles.css` | Porto styling, shelf, sleeve and transport |
 | `dist/wireframe.html` | Annotated six-screen flow |
 | `dist/credits.html`, `dist/audio-credits.json` | Music attribution, licences and source links |
 | `dist/assets/` | Generated covers, approved Porto assets and demo audio |
+| `scripts/import-catalogue-music.py` | Reproducible import, normalization and attribution for the new editions |
+| `scripts/validate-player.mjs` | Asset, catalogue, migration and simulated playback regression checks |
 | `create-demo-audio.py` | Deterministic synthesis for the first three releases |
 
 ## Evidence and rights
 
-No payment, licence issuance, streaming attestation, accrual or payout occurs here. No native iOS packaging has been built. The support page illustrates the subscription model, not record-sale fees. The fictional artists do not claim authorship of Kevin MacLeod's recordings. The six licensed recordings retain CC BY 4.0 attribution and freely accessible downloads. See the credit page and each audio archive for exact terms. No blanket open-source licence is granted for Porto branding or this repository.
+No payment, licence issuance, streaming attestation, accrual or payout occurs here. No native iOS packaging has been built. The support page illustrates the subscription model, not record-sale fees. The fictional artists do not claim authorship of Kevin MacLeod's recordings. All twenty-one licensed recordings retain CC BY 4.0 attribution and freely accessible downloads. See the credit page and each audio archive for exact terms. No blanket open-source licence is granted for Porto branding or this repository.
 
 Figma currently has a recorded partial native build. The style guide and player handoff are repository specifications, not evidence that native player components have been built or published there.

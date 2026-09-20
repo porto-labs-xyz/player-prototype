@@ -66,3 +66,12 @@ Music source: https://incompetech.com/music/royalty-free/ . Licence: https://cre
 The user explicitly requested track jumping on every album. This supersedes the prototype's earlier purchase-only track navigation. All sleeve, album-detail and listening track lists are interactive without purchase; previous/next controls move across sides within the current album and stop at album boundaries. Automatic playback still progresses through the selected side. Demo ownership now adds seeking within tracks and audio downloads.
 
 Play/pause uses fine-line SVG controls in a quiet square frame with paper/coral states. The persistent player shows `LIVE · LND-001` with a softly pulsing red dot only after an audio `playing` event. Pausing, waiting, stalling, loading, errors and side completion remove the live pulse. The badge visibly says DEMO NODE; the about panel explains that the node is simulated and audio comes from demo files. This is not a connection to a live Porto node. Reduced-motion preferences keep the active dot steady.
+
+
+## Artist editions, 20 September 2026
+
+Added five fictional artist identities and original AI-generated portrait sleeves: Kiki Static / Sugar Circuit (Hyperpop), June Arcade / Borrowed Sun (Indie), Moth Season / Violet Weather (Alternative), The Hollow Youth / Loud Enough (Rock), and Sable Noa / After the Blue (R&B). Full generation prompts are recorded in `artist-art-prompts.json`; images were generated with the built-in imagegen tool and exported to 768px square WebP for the application. No native Figma assets or components were edited.
+
+The new releases use fifteen distinct full-length Kevin MacLeod instrumentals, licensed under CC BY 4.0, with normalization and encoding changes disclosed. Real titles, composer and source links remain visible; the fictional sleeve identities never replace musician attribution. Downloads and licence notices are freely available on the credit page independently of demo ownership. Each new edition has two tracks on side A and one on side B.
+
+The new artwork row exposes the different identities immediately while retaining the existing architectural shelf and gatefold. The shelf seeds only new edition IDs once for returning users. These are prototype choices, not a native Figma release or proof of artist partnerships.
