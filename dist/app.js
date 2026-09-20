@@ -34,7 +34,7 @@ try{
     localStorage.setItem('porto-catalog-v3','1');
   }
 }catch{saved=[...starterShelf]}
-let current=records[0],side=0,track=0,playing=false,selectedSide=0,filter='All',query='',shelfFilter='All records',toastTimer;
+let current=records.find(r=>r.id==='sugar-circuit')||records[0],side=0,track=0,playing=false,selectedSide=0,filter='All',query='',shelfFilter='All records',toastTimer;
 const isWire=new URLSearchParams(location.search).has('wireframe');if(isWire){document.body.classList.add('wireframe-mode');$('.demo-pill').textContent='Interactive wireframe'}
 const fmt=n=>`${Math.floor(n/60)}:${String(Math.floor(n%60)).padStart(2,'0')}`;
 const sideName=n=>n===0?'A':'B';const asset=r=>'assets/'+r.art;const isOwned=r=>owned.includes(r.id);

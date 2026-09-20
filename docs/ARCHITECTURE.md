@@ -10,6 +10,8 @@ Discover filters the catalogue. My shelf combines browser-local saved and owned 
 
 ## Playback
 
+The initial selection is Reformat, the first track on side A of the fictional Sugar Circuit release. Playback waits for the listener to press play.
+
 `selectTrack` selects any album, side and track. `stepTrack` moves within album bounds and crosses the A/B boundary. `source` selects a local WAV or MP3 file. Playback follows each track's declared duration; seeking is shown for demo-owned copies. Automatic progression stops at the end of a side. A request counter prevents stale play promises from restoring UI state after a pause or new selection.
 
 The live badge is simulated. It pulses after `playing`, and stops on waiting, stalled, loadstart, pause, error or ended events. The badge displays the fictional node identifier LND-001 and DEMO NODE. Audio-event handling demonstrates player state, not peer-to-peer delivery or network attestation.
