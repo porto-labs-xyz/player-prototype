@@ -39,6 +39,10 @@ The player currently uses line opacity `#EEE8DC26` versus released `#EEE8DC2E`, 
 
 These names are a construction specification, not existing Figma node identifiers. Current player CSS includes very small spine/catalogue metadata and some 30px mobile transport widths. The style guide calls for larger alternatives and 44px primary touch targets; a native release must close these accessibility gaps rather than treating the prototype as a verified component library.
 
+## Custom support icon
+
+The Your support navigation uses a hand-authored northeast-arrow SVG with a 24px view box, 1.6px rounded stroke and no fill. It inherits the muted, paper hover and coral active navigation colours. Keep it decorative beside the accessible link text. This player-specific vector pattern replaces the platform-dependent emoji and follows the existing transport line treatment; it does not imply a new Figma component release.
+
 ## Making a change
 
 Read the current manifest and style guide, inspect the corresponding function/CSS, and trace the relevant source through the knowledge graph. Record whether the decision is a shared token, a player-specific pattern or a prototype-only exception. Export verified Figma changes back into the package at release time. Never invent node IDs or call a generated image an editable Figma component.
