@@ -54,3 +54,8 @@ The browser stores the explicit choice under `porto-theme`, applies it before st
 ## Making a change
 
 Read the current manifest and style guide, inspect the corresponding function/CSS, and trace the relevant source through the knowledge graph. Record whether the decision is a shared token, a player-specific pattern or a prototype-only exception. Export verified Figma changes back into the package at release time. Never invent node IDs or call a generated image an editable Figma component.
+
+
+## Copyright notice
+
+The player footer displays © 2026 Porto Labs Ltd. UK, as requested by the user. Individual music recordings retain their existing composer attribution and licence terms.
