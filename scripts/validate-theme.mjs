@@ -5,10 +5,10 @@ import vm from 'node:vm';
 const source = readFileSync(new URL('../dist/theme.js', import.meta.url), 'utf8');
 function boot(value, blocked = false) {
   const store = new Map(value === undefined ? [] : [['porto-theme', value]]);
-  const events = {}, buttonEvents = {}, dataset = {}, label = {}, status = {}, meta = {};
+  const events = {}, buttonEvents = {}, dataset = {}, label = {}, count = {}, status = {}, meta = {};
   const attrs = {};
   let ready = false;
-  const button = {setAttribute: (key, val) => attrs[key] = val, querySelector: () => label,
+  const button = {setAttribute: (key, val) => attrs[key] = val, querySelector: selector => selector === '.theme-label' ? label : count,
     addEventListener: (key, fn) => buttonEvents[key] = fn};
   const document = {documentElement: {dataset}, querySelector: () => meta,
     getElementById: id => id === 'theme-status' ? status : ready ? button : null,
@@ -27,12 +27,15 @@ const fresh = boot();
 assert.equal(fresh.beforeReady, 'dark');
 fresh.click();
 assert.equal(fresh.dataset.theme, 'light');
-assert.equal(fresh.attrs['aria-label'], 'Switch to dark mode');
+assert.equal(fresh.attrs['aria-label'], 'Light theme (2 of 5). Switch to Dusk');
 assert.equal(fresh.meta.content, '#f4f0e7');
 const reload = boot(fresh.store.get('porto-theme'));
 assert.equal(reload.beforeReady, 'light');
-reload.click();
-assert.equal(reload.store.get('porto-theme'), 'dark');
+for (const theme of ['dusk', 'forest', 'ink', 'dark']) {
+  reload.click();
+  assert.equal(reload.store.get('porto-theme'), theme);
+  assert.equal(boot(theme).beforeReady, theme);
+}
 reload.storage({key: 'porto-theme', newValue: 'light'});
 assert.equal(reload.dataset.theme, 'light');
 reload.storage({key: 'porto-saved', newValue: 'dark'});
@@ -44,4 +47,4 @@ const blocked = boot(undefined, true);
 blocked.click();
 assert.equal(blocked.dataset.theme, 'light');
 assert.match(blocked.status.textContent, /for this visit/);
-console.log('PASS: pre-paint theme, toggle, reload, cross-tab changes, reset, invalid values and unavailable storage. DOM/storage simulated.');
+console.log('PASS: five-theme cycle and wraparound, pre-paint theme, reload, cross-tab changes, reset, invalid values and unavailable storage. DOM/storage simulated.');

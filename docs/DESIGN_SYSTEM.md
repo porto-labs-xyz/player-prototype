@@ -43,11 +43,13 @@ These names are a construction specification, not existing Figma node identifier
 
 The Your support navigation uses a hand-authored northeast-arrow SVG with a 24px view box, 1.6px rounded stroke and no fill. It inherits the muted, paper hover and coral active navigation colours. Keep it decorative beside the accessible link text. This player-specific vector pattern replaces the platform-dependent emoji and follows the existing transport line treatment; it does not imply a new Figma component release.
 
-## Light and dark appearance
+## Five appearance themes
 
-A sun/moon toggle in the top navigation switches the whole player between the original dark palette and warm paper light mode. Light mode uses #F4F0E7 for the canvas, #242620 for primary text, #615F55 for secondary text and #B73F32 for coral text and focus. Filled collection actions retain the original coral with dark text. Record art, spine colours and printed sleeve palettes stay unchanged. These are player-specific theme mappings, not changes to released global tokens or native Figma evidence.
+A custom split-circle button in primary navigation cycles Dark, Light, Dusk, Forest and Ink, then returns to Dark. On mobile it sits in the topmost navigation alongside the route icons; the desktop sidebar shows the current name and position out of five. Its accessible name identifies both the current theme and next selection. All controls retain 44px targets.
 
-Dark is the initial default. The browser stores the explicit choice under `porto-theme`, applies it before stylesheet loading and synchronizes it across tabs. Storage failures leave the toggle usable for the visit. Theme changes do not rebuild the player or interrupt audio. The wireframe preview retains its separate palette and hides the theme control.
+Dark is the initial default. Light uses warm paper surfaces and charcoal text. Dusk uses muted plum and peach, Forest uses deep green and sage, and Ink uses slate and soft blue. Palettes cover canvas, navigation, text, dividers, dialogs, actions and the persistent player. Record art, spine colours and printed sleeve palettes stay unchanged. These are player-specific theme mappings, not changes to released global tokens or native Figma evidence.
+
+The browser stores the explicit choice under `porto-theme`, applies it before stylesheet loading and synchronizes it across tabs. Existing dark/light choices remain valid; invalid or cleared values return to Dark. Storage failures leave the control usable for the visit. Theme changes do not rebuild the player or interrupt audio. The wireframe preview retains its separate palette and hides the theme control.
 
 ## Making a change
 
