@@ -33,7 +33,7 @@ The player currently uses line opacity `#EEE8DC26` versus released `#EEE8DC2E`, 
 | Player/Record-spine | vinylShelf, .record-spine | Rest, hover, focus, selected |
 | Player/Sleeve | openJacket, sleeveBack, sleeveNotes | Closed, front/back, liner notes |
 | Player/Track-row | tracks, sleeveBack | Available, current, keyboard focus |
-| Player/Transport | updatePlayer, .play-button, .skip-button | Play, pause, previous, next, disabled boundary |
+| Player/Transport | updatePlayer, .play-button, .queue-button | Play, pause, queue count, queue review and removal |
 | Player/Node-status | #node-status | Ready, buffering, live, paused; demo label always visible |
 | Player/Ownership | purchase, local owned state | Unowned, demo confirmation, demo owned |
 
@@ -54,6 +54,36 @@ The browser stores the explicit choice under `porto-theme`, applies it before st
 ## Making a change
 
 Read the current manifest and style guide, inspect the corresponding function/CSS, and trace the relevant source through the knowledge graph. Record whether the decision is a shared token, a player-specific pattern or a prototype-only exception. Export verified Figma changes back into the package at release time. Never invent node IDs or call a generated image an editable Figma component.
+
+## Artist directory and profile journal, 21 September 2026
+
+Artist discovery uses a horizontal portrait strip with native scrolling and a readable directory below. Profiles use a large artist image, a short introduction, a release row and a two-column Their world grid. At narrow phone widths the journal becomes one column so notes remain readable. Artist names on record and listening pages link to the profile. Keep music and collection actions available; the fixed player remains outside the changing view.
+
+The journal mixes full-bleed imagery with quiet note cards and labels drawn from the content categories. BTS, Moments, Artwork and Notes are the initial examples. Categories describe the work, not engagement. Grid buttons open an accessible native dialog with the full image or note, restore focus on dismissal and respect reduced motion. Use existing theme tokens, visible focus outlines and 44px controls. These are prototype patterns, not new released tokens or completed native Figma components.
+
+No likes, comments, followers, direct messages, sharing controls, public counts or engagement ranking. Keep this a finite artist-selected collection that invites exploration during listening. Demo imagery and text remain clearly identified as fictional.
+
+
+## Five sleeve typography choices
+
+The player offers five curated sleeve styles. The fictional catalogue demonstrates choices assigned per artist, with the same selection applied to front-caption titles, back-cover headings and track names, and liner-note headings and prose. The listener sees the artist's choice; this prototype does not include an artist publishing or font-upload interface. A new artist without a configured choice falls back to Studio. Keep preset and font-family names in internal documentation. Do not expose font labels or typography credits in the listening experience.
+
+| Style | Typeface | Treatment | Example artist |
+| --- | --- | --- | --- |
+| Studio | DM Sans | Quiet sentence case, medium headings, open body copy | Sable Noa |
+| Editorial | Cormorant Garamond | Larger literary serif headings and 20px reading text | June Arcade |
+| Archive | IBM Plex Mono | Measured monospaced titles and spacious reading rhythm | Moth Season |
+| Poster | Archivo Narrow | Condensed uppercase headings, sentence-case reading text | The Hollow Youth |
+| Pulse | Space Grotesk | Geometric headings, tighter display spacing, open body copy | Kiki Static |
+
+Preserve shared Porto interface fonts, catalogue metadata, timings, credits, navigation and playback controls. Artists select a complete preset, not arbitrary fonts, sizes, tracking or colours. Keep body copy at 16px or above except Archive's 15px desktop text, increased to 16px on mobile. Never apply tight display tracking or uppercase to long-form reading text. All presets preserve square artwork, sleeve animation, reduced-motion rules, readable wrapping, 44px track controls and the existing printed colour palette across interface themes.
+
+The three additional families are self-hosted in the player with their SIL Open Font Licenses. DM Sans and IBM Plex Mono use existing interface font loading. These are requested player-specific extensions of package 0.1.0-dev.1, not a new released token package or verified native Figma implementation.
+
+
+## Compact navigation and footer branding
+
+Only the original branded P appears in primary navigation. The lowercase porto wordmark sits in the page footer beside the company-wide tagline, “Made To Be Listened To.” The home link retains its accessible name. In the sticky mobile row, allocate 44px to the P and each of the six controls, including the theme switcher. Use 12px gutters and an 8px gap normally, reducing to 6px gutters and no gap below 360px. This fits the full navigation at 320px without hiding the P or allowing the theme button offscreen. Theme labels and sequence counts remain available on desktop and in the switcher's accessible name on mobile. This is a player-specific layout refinement.
 
 
 ## Copyright notice

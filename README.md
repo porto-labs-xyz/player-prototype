@@ -27,7 +27,7 @@ Open http://localhost:8064. No package installation or build step is needed. The
 
 ## Current behaviour
 
-Fourteen records are saved initially. Five new artist editions lead discovery with original generated portraits across Hyperpop, Indie, Alternative, Rock and R&B. Their fifteen distinct full-length instrumental recordings add varied tempos and textures; genre labels describe fictional artist identities, with the real music credited separately. Selecting a narrow spine opens the front/back sleeve or liner notes. Any track can be selected without purchase; previous/next cross sides within the album. Automatic playback continues through the chosen side and stops at its end. Pause preserves position; lift needle resets the side.
+Fourteen records are saved initially. Five new artist editions lead discovery with original generated portraits across Hyperpop, Indie, Alternative, Rock and R&B. Their fifteen distinct full-length instrumental recordings add varied tempos and textures; genre labels describe fictional artist identities, with the real music credited separately. Selecting a narrow spine opens the front/back sleeve or liner notes. Start a side, then add any track next. Queued tracks play in their listed order when the current track ends, before the normal side sequence resumes. There are no skip controls. Pause preserves position; lift needle resets the side.
 
 Add to collection is a primary action on artist cards, the record index, sleeves, record details, the listening screen and the persistent player. Saved records show In collection. Collections persist in browser local storage and synchronize across tabs on the same origin. Demo ownership adds seeking and downloads; saving a record is free and does not grant ownership. Existing starter records, removals and demo purchases are preserved. The red `LIVE · LND-001` indicator follows audio playback and visibly says DEMO NODE. It does not establish a connection to a Porto node.
 
@@ -51,3 +51,11 @@ Add to collection is a primary action on artist cards, the record index, sleeves
 No payment, licence issuance, streaming attestation, accrual or payout occurs here. No native iOS packaging has been built. The support page illustrates the subscription model, not record-sale fees. The fictional artists do not claim authorship of Kevin MacLeod's recordings. All twenty-one licensed recordings retain CC BY 4.0 attribution and freely accessible downloads. See the credit page and each audio archive for exact terms. No blanket open-source licence is granted for Porto branding or this repository.
 
 Figma currently has a recorded partial native build. The style guide and player handoff are repository specifications, not evidence that native player components have been built or published there.
+
+## Artists and their worlds
+
+Artists opens a horizontal discovery strip and a searchable, genre-filtered directory of all fourteen fictional artists. Each profile brings together a short introduction, releases and a finite Their world grid for BTS, artwork, personal notes and moments. Grid items open as larger images or readable notes. Record and listening pages link back to the artist, and browsing or opening a journal item preserves the current audio session.
+
+This is an artist-curated space, with no likes, comments, follower counts, messaging, sharing controls or engagement ranking. The intention is deeper exploration alongside listening, not a social feed. Retention is a design hypothesis, not a measured outcome. Profile copy, journals and generated scene images are fictional demo material. The three studio, backstage and artwork scenes are shared illustrative assets, not documentary images of these artists. Content is authored in source; artist accounts, uploading and publishing tools are not implemented.
+
+`dist/artist-profiles.js` contains the directory, profile and journal presentation. `docs/artist-world-image-prompts.json` records the built-in image generation prompts and asset paths.

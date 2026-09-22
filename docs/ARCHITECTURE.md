@@ -18,7 +18,7 @@ Saving from a music screen updates the collection controls in place, preserving 
 
 The initial selection is Reformat, the first track on side A of the fictional Sugar Circuit release. Playback waits for the listener to press play.
 
-`selectTrack` selects any album, side and track. `stepTrack` moves within album bounds and crosses the A/B boundary. `source` selects a local WAV or MP3 file. Playback follows each track's declared duration; seeking is shown for demo-owned copies. Automatic progression stops at the end of a side. A request counter prevents stale play promises from restoring UI state after a pause or new selection.
+`queueTrack` adds any album, side and track to the session queue without replacing the current track. `playQueuedTrack` consumes the queue in order before normal side progression resumes. `source` selects a local WAV or MP3 file. Playback follows each track's declared duration; seeking is shown for demo-owned copies. Automatic progression stops at the end of a side. A request counter prevents stale play promises from restoring UI state after a pause or new selection.
 
 The live badge is simulated. It pulses after `playing`, and stops on waiting, stalled, loadstart, pause, error or ended events. The badge displays the fictional node identifier LND-001 and DEMO NODE. Audio-event handling demonstrates player state, not peer-to-peer delivery or network attestation.
 
@@ -39,3 +39,13 @@ Vercel is the only deployment target for this prototype: https://porto-listening
 ## Evidence limits
 
 There is no payment provider, user account service, persistent rights registry, live Porto node, streaming attestation or settlement implementation. Sequential files may have transitions between chapters; this is not verified gapless native playback. The responsive web layout has no TestFlight, App Clip or installable iOS package.
+
+## Artist routes and journal
+
+`#artists` renders the directory; `#artist/<artist-slug>` renders a profile or a helpful not-found state. Artists are deduplicated by name and grouped across releases. The directory has independent search and genre state, so returning from a profile preserves the chosen search. Profile category state resets on changing artists. The profile links from Discover, record details and Listening connect these routes.
+
+`artist-editions.js`, `artist-profiles.js` and `app.js` load in order as classic scripts at the end of the document. Profile functions use the catalogue and playback helpers after app initialization. The artist profile data is a prototype source model: image entries have a local source, alternative text, title and caption; note entries have a title and body. Categories and grid length derive from each artist's items. The initial examples are fictional and share three generated scene assets. No user content is accepted and no authoring backend exists. Source strings are escaped before insertion in artist templates.
+
+Play the music starts the artist's record without leaving the profile. Rendering the directory, filtering the grid and opening the detail dialog never replaces the audio element or changes its source. The dialog uses browser focus trapping and Escape dismissal, with a descriptive title and focus return. Navigating away closes it. Record collection controls retain the existing local collection behaviour.
+
+The retention hypothesis is that artist-selected context gives listeners a reason to explore while music continues. No measured retention claim, engagement counters, algorithmic feed, social actions, new analytics or notifications are introduced.
