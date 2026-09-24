@@ -1,0 +1,96 @@
+/* Curated album typography. Interface controls retain Porto type. */
+@font-face {
+  font-family: 'Archivo Narrow';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(assets/fonts/archivo-narrow-400.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Archivo Narrow';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(assets/fonts/archivo-narrow-600.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(assets/fonts/cormorant-garamond-400.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(assets/fonts/cormorant-garamond-500.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(assets/fonts/cormorant-garamond-600.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(assets/fonts/space-grotesk-400.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(assets/fonts/space-grotesk-500.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url(assets/fonts/space-grotesk-600.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Presets keep their own scale, rhythm and weight, within one shared layout. */
+[data-sleeve-type]{--album-font:var(--sans);--album-weight:500;--album-tracking:-.035em;--album-title:34px;--album-leading:1.12;--album-body:16px;--album-body-leading:1.75}
+[data-sleeve-type="editorial"]{--album-font:'Cormorant Garamond',Georgia,serif;--album-weight:500;--album-tracking:-.025em;--album-title:44px;--album-leading:1.05;--album-body:20px;--album-body-leading:1.55}
+[data-sleeve-type="archive"]{--album-font:var(--mono);--album-weight:400;--album-tracking:-.045em;--album-title:29px;--album-leading:1.22;--album-body:15px;--album-body-leading:1.8}
+[data-sleeve-type="poster"]{--album-font:'Archivo Narrow','Arial Narrow',sans-serif;--album-weight:600;--album-tracking:.015em;--album-title:42px;--album-leading:1.05;--album-body:18px;--album-body-leading:1.6}
+[data-sleeve-type="pulse"]{--album-font:'Space Grotesk',var(--sans);--album-weight:600;--album-tracking:-.055em;--album-title:36px;--album-leading:1.08;--album-body:16px;--album-body-leading:1.75}
+.gatefold[data-sleeve-type] .jacket-front figcaption strong,
+.gatefold[data-sleeve-type] .jacket-back h2,
+.gatefold[data-sleeve-type] .jacket-notes h2{
+  font-family:var(--album-font);font-size:var(--album-title);font-weight:var(--album-weight);
+  line-height:var(--album-leading);letter-spacing:var(--album-tracking);overflow-wrap:anywhere;
+}
+.gatefold[data-sleeve-type] .jacket-front figcaption>span:first-child,
+.gatefold[data-sleeve-type] .jacket-back>.eyebrow{font-family:var(--album-font);font-size:14px;letter-spacing:.02em}
+.gatefold[data-sleeve-type] .back-tracklist button,
+.gatefold[data-sleeve-type] .jacket-notes>p:not(.eyebrow):not(.notes-colophon),
+.gatefold[data-sleeve-type] .jacket-notes dd{
+  font-family:var(--album-font);font-size:var(--album-body);line-height:var(--album-body-leading);letter-spacing:normal;
+}
+.gatefold[data-sleeve-type] .jacket-notes>p.notes-intro:not(.eyebrow):not(.notes-colophon){font-size:calc(var(--album-body) + 3px);line-height:1.45}
+.gatefold[data-sleeve-type] .back-tracklist button{min-height:44px;overflow-wrap:anywhere}
+.gatefold[data-sleeve-type="poster"] .jacket-front figcaption strong,
+.gatefold[data-sleeve-type="poster"] .jacket-back h2,
+.gatefold[data-sleeve-type="poster"] .jacket-notes h2{text-transform:uppercase}
+@media(max-width:760px){
+  .gatefold[data-sleeve-type]{--album-title:34px}
+  .gatefold[data-sleeve-type="editorial"]{--album-title:42px}
+  .gatefold[data-sleeve-type="archive"]{--album-title:28px;--album-body:16px}
+  .gatefold[data-sleeve-type="poster"]{--album-title:40px}
+}

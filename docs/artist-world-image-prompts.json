@@ -1,0 +1,18 @@
+{
+  "method": "built-in image_gen",
+  "purpose": "Shared illustrative scenes for fictional artist journals; not documentary evidence.",
+  "prompts": [
+    {
+      "asset": "dist/assets/artist-world-studio.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: fictional artist journal image for a quiet independent music listening app. Make one square 1024x1024 candid 35mm film photograph of an empty small home recording studio at dusk. Close view of an old upright piano, compact tape recorder, headphones and handwritten notebook with indistinct writing, warm window light falling across worn wood, charcoal shadows, fine natural grain. Intimate, real, understated editorial photography. No people, logos, watermarks, legible text, UI or collage."
+    },
+    {
+      "asset": "dist/assets/artist-world-backstage.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: fictional artist journal backstage moment for an independent music app. One square 1024x1024 candid analogue film photograph from the wing of a tiny music venue just before soundcheck: a battered electric guitar resting against an amplifier, looping cables on a worn floor, faded red curtain at left and a soft warm spotlight illuminating haze beyond. Empty room, no people. Close, intimate, imperfect framing, rich charcoal and muted rust, natural grain. No logos, text, watermark, UI or collage."
+    },
+    {
+      "asset": "dist/assets/artist-world-sketchbook.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: fictional artist journal artwork-in-progress image for an independent music app. One square 1024x1024 overhead analogue photograph of a musician's artwork desk: loose deep violet and coral paper cutouts, a small photographic contact sheet with indistinct landscapes, open sketchbook with abstract charcoal shapes, pencil, masking tape on warm ivory paper. Human, tactile, quiet, directional late afternoon window light, no people. Beautiful editorial still life, natural film grain, no logos, legible text, watermark, UI or collage."
+    }
+  ]
+}

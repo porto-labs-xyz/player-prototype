@@ -1,0 +1,113 @@
+/* Listening room, September 2026: readable records, explicit actions, vinyl first. */
+:root{--sans:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{font-size:16px;line-height:1.6}
+button,input,select{font-family:var(--sans)}
+h1,h2,h3{letter-spacing:-.035em;font-weight:600}
+.primary,.secondary,.text-button,.back,.filter,.queue-button,.side-tabs button,.jacket-views button,.jacket-close{font-family:var(--sans);font-size:15px;line-height:1.4;min-height:44px}
+.primary,.secondary{padding:12px 20px;font-weight:600;border-radius:4px}
+.text-button,.back{display:inline-flex;align-items:center}
+.eyebrow{font:600 12px/1.5 var(--sans);letter-spacing:.1em}
+.legal-note,.audio-credit{font:14px/1.65 var(--sans);color:var(--muted)}
+.legal-note a,.audio-credit a{text-decoration:underline;text-underline-offset:3px}
+.listener-note{font-size:15px;line-height:1.6;max-width:none}
+.app-shell{display:block;padding-bottom:146px}
+.sidebar{position:relative;inset:auto;width:100%;height:88px;flex-direction:row;align-items:center;justify-content:space-between;padding:16px max(24px,calc((100vw - 1184px)/2));border-right:0;border-bottom:1px solid var(--line);background:var(--bg);z-index:12}
+.sidebar .brand{display:flex;flex:0 0 44px}
+.sidebar .sidebar-body{margin:0;flex:none}
+.sidebar-body nav{display:flex;align-items:center;gap:20px;margin:0}
+.sidebar-body nav a{font:500 16px/1.4 var(--sans);width:auto;min-width:0;min-height:44px;padding:10px 12px;margin:0;flex:none;border-radius:0}
+.sidebar-body nav a.active{color:var(--paper);background:none;box-shadow:inset 0 -2px var(--red)}
+.sidebar-body nav a small{font:13px var(--sans);margin-left:2px;display:inline}
+.nav-more{position:relative}
+.nav-more summary{list-style:none;display:flex;align-items:center;gap:6px;min-height:44px;padding:10px 12px;cursor:pointer;font-size:15px;color:var(--muted)}
+.nav-more summary::-webkit-details-marker{display:none}
+.nav-more summary:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+.more-menu{position:absolute;right:0;top:calc(100% + 8px);width:240px;border:1px solid var(--line-strong);background:var(--panel);padding:12px;box-shadow:0 12px 32px #0003}
+.sidebar-body nav .more-menu a{display:flex;width:100%;font-size:15px}
+.more-menu .text-button{width:100%;padding:10px 12px}
+.sidebar-body nav .theme-toggle{width:100%;height:auto;justify-content:flex-start;margin:8px 0;padding:10px 12px}
+.sidebar-body nav .theme-toggle .theme-label,.sidebar-body nav .theme-toggle .theme-count{display:inline}
+.workspace{width:100%}
+.topbar{max-width:1184px;height:56px;margin:0 auto;padding:0;border:0;color:var(--muted);font-size:14px}
+.topbar .demo-pill{display:block;font:14px var(--sans);text-transform:none;letter-spacing:0;background:none;min-height:44px;padding:8px 0;border:0}
+.topbar .demo-pill:before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red);margin-right:9px}
+main{max-width:1232px;padding:16px 24px 64px;min-height:65vh}
+.digital-hero{display:grid;grid-template-columns:1.05fr 1fr;gap:64px;align-items:center;padding:24px 0 64px;border-bottom:1px solid var(--line)}
+.digital-copy h1{font-size:clamp(40px,4.4vw,62px);line-height:1.1;letter-spacing:-.05em;margin:20px 0 24px}
+.digital-intro{color:var(--muted);font-size:18px;line-height:1.65;max-width:37ch}
+.digital-copy .actions{margin-top:32px;gap:12px}
+.digital-support{margin-top:26px;font-size:15px;line-height:1.65;color:var(--muted)}
+.digital-feature{display:block;min-width:0;padding-top:12px}
+.digital-object{position:relative;aspect-ratio:1.3;isolation:isolate;margin:0 0 24px}
+.digital-sleeve{position:absolute;left:0;top:0;width:77%;aspect-ratio:1;object-fit:cover;box-shadow:3px 8px 20px #0004}
+.vinyl-disc{position:absolute;right:0;top:3%;width:73%;aspect-ratio:1;border-radius:50%;background:repeating-radial-gradient(circle,#161818 0px,#161818 2px,#242626 3px,#101212 4px);border:1px solid #4447;box-shadow:3px 5px 16px #0005;display:grid;place-items:center}
+.vinyl-disc:after{content:'';position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 35deg,transparent,#ffffff0d,transparent 35%,#ffffff08,transparent 80%)}
+.vinyl-label{display:grid;place-content:center;text-align:center;width:31%;height:31%;border-radius:50%;background:#ce695c;color:#201b19;transform:rotate(14deg);font-weight:700}
+.vinyl-label small{font-size:9px;color:inherit}.vinyl-label:after{content:'';position:absolute;left:calc(50% - 3px);top:calc(50% - 3px);width:6px;height:6px;background:#161818;border-radius:50%}
+.featured-caption{display:flex;justify-content:space-between;align-items:center;width:77%;gap:12px}
+.featured-caption .eyebrow{color:var(--muted);font-size:11px}
+.featured-caption h2{font-size:24px;margin-top:6px}
+.featured-caption p{font-size:16px;color:var(--muted);margin-top:4px}
+.featured-arrow{font-size:24px}
+.catalog-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:40px 0 28px}
+.catalog-heading h2{font-size:26px}
+.catalog-heading p{font-size:15px;color:var(--muted);margin-top:6px}
+.catalog-tools{display:flex;align-items:center;gap:20px}
+.search{width:240px;min-height:44px;padding:6px 0}.search input{font-size:16px;width:100%;min-width:0}
+.genre-select select{background:var(--bg);color:var(--paper);border:1px solid var(--line-strong);border-radius:4px;min-height:44px;font-size:15px;padding:8px 30px 8px 12px;max-width:160px}
+.record-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:40px 24px}
+.record-card img{aspect-ratio:1}
+.card-info{margin-top:16px}.card-info h3{font-size:20px;line-height:1.3}.card-info p{font-size:16px;margin-top:5px}
+.record-card-foot{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted);margin-top:8px;align-items:center}
+.record-card-foot a{display:inline-flex;align-items:center;min-height:44px;color:var(--paper)}
+.record-card>.collection-button{width:100%;margin-top:8px;background:none;color:var(--paper);border-color:var(--line-strong)}
+.record-card>.collection-button:not(.saved){color:var(--red)}
+.record-cover-link{display:block}.record-cover-link:focus-visible .card-arrow{opacity:1}
+.detail-layout{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:56px}
+.detail-content h1{font-size:clamp(32px,3.5vw,48px);line-height:1.15;margin:12px 0 8px}
+.record-description{font-size:16px;color:var(--muted);margin:18px 0 20px}
+.open-sleeve-button{margin-top:20px;width:100%}
+.detail-content .track-list{margin-top:24px}
+.track-row{grid-template-columns:20px minmax(0,1fr) auto auto;font-size:16px;gap:12px;padding:5px 0}
+.track-row .add-next{font:500 14px var(--sans);white-space:nowrap;min-height:44px;padding:8px 4px;color:var(--muted)}
+.track-row .add-next:hover{color:var(--paper)}
+.track-row time,.track-row .num{font-size:13px}
+.ownership{display:block;margin-top:32px;padding:24px 0 0}.ownership h3{font-size:19px}.ownership p{font-size:15px;max-width:none}
+.buying-options{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0 0}
+.buy-format{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:18px;border:1px solid var(--line);border-radius:4px}
+.buy-format.vinyl-format{border-color:var(--line-strong);background:var(--hover)}
+.buy-format .eyebrow{font-size:11px;color:var(--muted)}.buy-format h3{font-size:17px;margin:0}.buy-format p{font-size:14px}
+.buy-format .primary,.buy-format .secondary{width:100%;font-size:15px;white-space:normal;margin-top:auto;padding:12px}
+.buy-format p{margin-bottom:12px}
+.ownership>.legal-note{font-size:13px;margin-top:14px}
+.record-story p{font-size:16px}.jacket-actions .collection-button{order:0}
+.jacket-views button,.jacket-close{font-size:15px}.jacket-actions{flex-wrap:wrap}
+.gatefold[data-sleeve-type] .back-tracklist button,.gatefold[data-sleeve-type] .jacket-notes>p:not(.eyebrow):not(.notes-colophon),.gatefold[data-sleeve-type] .jacket-notes dd{font-family:var(--sans);font-size:16px;line-height:1.65}
+.shelf-index b{font-size:16px}.shelf-index small{font-size:14px}.shelf-index .index-open{min-height:56px}
+.content-footer{max-width:1184px;margin:0 auto 28px;font:14px/1.6 var(--sans);gap:24px}
+.player{height:130px;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) auto;gap:24px;padding:16px 32px}
+.player-library{max-width:360px;gap:6px}.player-library .collection-button{min-height:32px;padding:3px 0;border:0;font-size:14px;background:none;color:var(--muted)}
+.player-record strong{font-size:16px}.player-record small{font-size:13px}
+.player-centre .transport{gap:16px}.play-button{width:48px;height:48px}.icon-button{min-width:44px;min-height:44px}
+.queue-button{font-size:15px}.queue-button #queue-count{display:inline}.transport #track-caption{display:none}
+.player-right{gap:12px}.player-right #player-mode{display:none}.node-status small{font-size:11px}.node-status b{font-size:12px}
+#toast{bottom:148px;font-size:15px}
+dialog{max-width:580px;max-height:85vh;padding:40px;overflow:auto}dialog h2{font-size:32px;line-height:1.2}dialog p,dialog li{font-size:16px;line-height:1.65}dialog .purchase-record h3{font-size:20px}
+.format-demo-note{padding:20px;background:var(--hover);border:1px solid var(--line);margin:24px 0}.format-demo-note p{margin:8px 0 0}.digital-price{font-size:24px}.digital-price small{font-size:14px;margin-left:10px}
+@media(max-width:1232px){.topbar,.content-footer{margin-left:24px;margin-right:24px}.digital-hero{gap:40px}.digital-copy h1{font-size:48px}}
+@media(max-width:1000px){.digital-hero{gap:32px;grid-template-columns:1fr 1fr}.digital-copy h1{font-size:40px}.digital-copy .actions{gap:8px}.digital-copy .primary,.digital-copy .secondary{padding:12px 14px}.record-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.catalog-heading{align-items:flex-start;flex-direction:column}.catalog-tools{width:100%}.search{flex:1}.detail-layout{gap:32px}.buying-options{grid-template-columns:1fr}.player{padding-inline:24px;gap:16px}}
+@media(max-width:760px){
+ .app-shell{padding-bottom:166px}.sidebar{height:72px;padding:12px 16px;gap:12px}.sidebar .sidebar-body{flex:1;min-width:0;margin:0}.sidebar-body nav{justify-content:flex-end;gap:4px}.sidebar-body nav a{font-size:14px;min-width:0;min-height:44px;width:auto;flex:none;padding:10px 8px}.sidebar-body nav a small{display:none}.nav-more summary{font-size:14px;padding:10px 8px}.nav-more summary span{display:none}
+ .topbar{height:44px;margin:0 20px;font-size:13px}.topbar .demo-pill{font-size:13px}
+ main{padding:8px 20px 40px}.digital-hero{grid-template-columns:1fr;gap:32px;padding:20px 0 36px}.digital-copy h1{font-size:40px;margin:16px 0}.digital-intro{font-size:17px;max-width:40ch}.digital-copy .actions{margin-top:24px}.digital-copy .primary,.digital-copy .secondary{font-size:15px;padding:12px 16px}.digital-support{margin-top:20px;font-size:15px}.digital-support br{display:none}.digital-support br:after{content:' '}
+ .digital-feature{max-width:420px;width:100%;margin:0 auto;padding:0}.digital-object{margin-bottom:18px}.featured-caption{width:100%}.featured-caption h2{font-size:22px}
+ .catalog-heading{margin-top:32px;margin-bottom:24px;gap:20px}.catalog-heading h2{font-size:24px}.catalog-tools{gap:12px}.search{width:100%;min-width:0}.search input{font-size:16px}.genre-select select{max-width:122px;font-size:14px;padding-right:12px}
+ .record-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 16px}.card-info h3{font-size:18px}.card-info p{font-size:15px}.record-card-foot{font-size:13px;gap:4px}.record-card>.collection-button{font-size:14px;padding:10px 8px;gap:4px}.record-card>.collection-button>span:first-child{font-size:16px}
+ .detail-layout{grid-template-columns:1fr;gap:32px}.detail-content h1{font-size:36px}.detail-top{gap:12px}.detail-top .eyebrow{font-size:11px}.detail-content .actions{gap:10px}.detail-content .primary{padding-inline:16px}.buying-options{grid-template-columns:1fr 1fr;gap:12px}.buy-format{padding:14px}.buy-format .primary,.buy-format .secondary{padding:12px 6px;font-size:14px}
+ .track-row{gap:8px;grid-template-columns:16px minmax(0,1fr) auto auto}.track-row .add-next{font-size:13px}.track-row time{font-size:12px}.track-title{line-height:1.4}.jacket-toolbar{flex-wrap:wrap}.jacket-views{gap:16px}
+ .content-footer{margin:0 20px 24px;gap:16px}.footer-identity{gap:12px}.footer-identity>span{font-size:14px}
+ .player{height:152px;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;padding:10px 20px}.player-library{grid-column:1;grid-row:1;gap:2px}.player-library .player-record img{width:36px;height:36px}.player-library .collection-button{min-height:28px;font-size:13px}.player-record strong{font-size:15px}.player-record small{font-size:12px;margin-top:0}.player-right{grid-column:2;grid-row:1;align-self:center;padding:0}.node-status small{font-size:10px}.node-status b{font-size:11px}.node-status{gap:5px}.node-dot{width:5px;height:5px}
+ .player-centre{grid-row:2;grid-column:1/-1;display:flex;flex-direction:row;gap:16px;align-items:center}.player-centre .transport{gap:10px;flex:none}.queue-button{font-size:14px;padding:0;gap:3px}.queue-button>span:first-child{display:none}.time-line{flex:1;gap:8px;font-size:11px}.transport #lift{display:none}.player-centre .play-button{width:44px;height:44px}.volume{display:none}#toast{bottom:168px}
+ dialog{padding:40px 24px 24px;width:calc(100% - 32px)}dialog h2{font-size:28px}
+}
+@media(max-width:359px){.sidebar{padding:10px;gap:4px}.sidebar-body nav{gap:0}.sidebar-body nav a{padding:10px 6px;font-size:13px}.nav-more summary{padding:10px 6px;font-size:13px}.digital-copy h1{font-size:35px}.digital-copy .actions{align-items:stretch;flex-direction:column}.record-grid{gap:24px 12px}.card-info h3{font-size:16px}.record-card>.collection-button{font-size:12px}.buying-options{grid-template-columns:1fr}.node-status b{font-size:10px}.player{padding-inline:12px}.player-record small{font-size:11px}}

@@ -28,9 +28,13 @@ Three releases use original synthesized 24-second WAV studies. Six use Kevin Mac
 
 ## Artist editions and discovery
 
-`artist-editions.js` loads before the application and supplies fictional artist metadata, square generated cover assets, per-track attribution and actual audio durations. A responsive artwork row appears above the existing vinyl shelf and responds to the same genre/search filters. Search matches artists, record titles, genres and track names. The art directions span Hyperpop, Indie, Alternative, Rock and R&B; the audio is instrumental demo music with related textures, not original performances by those fictional artists.
+`artist-editions.js` loads before the application and supplies fictional artist metadata, square generated cover assets, per-track attribution and actual audio durations. Discovery uses one featured digital vinyl hero and a readable cover grid. Search and a genre selector filter the grid. The existing vinyl shelf remains in Collection, and record details expose the gatefold through an explicit button. Search matches artists, record titles, genres and track names. The art directions span Hyperpop, Indie, Alternative, Rock and R&B; the audio is instrumental demo music with related textures, not original performances by those fictional artists.
 
 `docs/music-provenance/2026-09-20.json` records direct source links and original/downloaded file hashes. `scripts/import-catalogue-music.py` rebuilds audio and credits from the selected source catalogue. If re-importing, synchronize updated durations and credit entries in `artist-editions.js` and regenerate any modified credit-page text before validation.
+
+## Purchase presentation
+
+`buyingOptions` renders physical vinyl before digital-only purchase controls on every record. `purchase(id, format)` opens the vinyl destination explanation or the digital demo confirmation. The catalogue has no connected physical retailers or stock, so the vinyl path has no external checkout and never writes ownership. Only the explicit digital confirmation updates `porto-owned`. Existing demo ownership preserves seeking and credited downloads. Saving remains independent of ownership.
 
 ## Hosting
 

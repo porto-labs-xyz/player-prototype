@@ -27,9 +27,15 @@ Open http://localhost:8064. No package installation or build step is needed. The
 
 ## Current behaviour
 
-Fourteen records are saved initially. Five new artist editions lead discovery with original generated portraits across Hyperpop, Indie, Alternative, Rock and R&B. Their fifteen distinct full-length instrumental recordings add varied tempos and textures; genre labels describe fictional artist identities, with the real music credited separately. Selecting a narrow spine opens the front/back sleeve or liner notes. Start a side, then add any track next. Queued tracks play in their listed order when the current track ends, before the normal side sequence resumes. There are no skip controls. Pause preserves position; lift needle resets the side.
+Fourteen records are saved initially. Records leads with a featured digital vinyl experience and a readable cover grid, with search and one genre selector. Records, Artists and Collection remain visible navigation labels on mobile; More contains listening, support, appearance and prototype information. Five artist editions have original generated portraits across Hyperpop, Indie, Alternative, Rock and R&B. Their fifteen distinct full-length instrumental recordings add varied tempos and textures; genre labels describe fictional artist identities, with the real music credited separately. Collection retains the tactile vinyl shelf and readable text index. Record details also have an explicit Open sleeve & liner notes action. Start a side, then add any track next. Queued tracks play in their listed order when the current track ends, before the normal side sequence resumes. There are no skip controls. Pause preserves position; lift needle resets the side.
 
 Add to collection is a primary action on artist cards, the record index, sleeves, record details, the listening screen and the persistent player. Saved records show In collection. Collections persist in browser local storage and synchronize across tabs on the same origin. Demo ownership adds seeking and downloads; saving a record is free and does not grant ownership. Existing starter records, removals and demo purchases are preserved. The red `LIVE · LND-001` indicator follows audio playback and visibly says DEMO NODE. It does not establish a connection to a Porto node.
+
+## Vinyl first, digital second
+
+Record details lead with Buy vinyl, followed by Digital only. The vinyl demo describes an artist or label shop destination. These fictional releases have no connected shop or physical stock, so no external retailer, order or payment is invented. Digital only opens an explicitly labelled demo confirmation with an illustrative price; it adds local demo ownership for seeking and downloads. Buying vinyl does not automatically grant a digital copy.
+
+Readable sans-serif interface type, plain action labels and “+ Next” queue buttons make the listening and purchase paths explicit. Sleeve display titles retain artist typography; liner notes and track lists use readable sans-serif text. Playback is idle until the listener presses Play.
 
 ## Files
 
@@ -38,7 +44,7 @@ Add to collection is a primary action on artist cards, the record index, sleeves
 | `dist/index.html` | Application shell and persistent player |
 | `dist/app.js` | Catalogue, routes, playback and local state |
 | `dist/artist-editions.js` | Five fictional artist editions and their fifteen credited recordings |
-| `dist/styles.css` | Porto styling, shelf, sleeve and transport |
+| `dist/styles.css`, `dist/minimal.css` | Porto foundations and the minimal digital vinyl layout |
 | `dist/wireframe.html` | Annotated six-screen flow |
 | `dist/credits.html`, `dist/audio-credits.json` | Music attribution, licences and source links |
 | `dist/assets/` | Generated covers, approved Porto assets and demo audio |

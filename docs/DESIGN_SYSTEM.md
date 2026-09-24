@@ -89,3 +89,12 @@ Only the original branded P appears in primary navigation. The lowercase porto w
 ## Copyright notice
 
 The player footer displays © 2026 Porto Labs Ltd. UK, as requested by the user. Individual music recordings retain their existing composer attribution and licence terms.
+
+
+## Minimal digital vinyl interface, 24 September 2026
+
+This player presentation supersedes the compact icon navigation and discovery shelf treatments above. Use a single digital vinyl hero, square cover grid, a genre selector and search. Keep three text navigation labels visible at all sizes, with secondary destinations and themes in More. The original P remains unchanged. Collection retains its shelf with a readable index; record details explicitly expose the sleeve and notes.
+
+Use DM Sans and system sans-serif fallbacks for the shared interface, including buttons. Body and sleeve reading text are at least 16px. Most controls and secondary labels are 14-16px, with clear contrast and 44px primary targets. Artist-specific sleeve titles remain expressive; track names and liner-note prose use the interface sans-serif. Queue buttons visibly say “+ Next”. The persistent player keeps play/pause, queue and DEMO NODE visible on phones.
+
+The ownership pattern presents a physical vinyl option first and a digital-only option second. Vinyl is the prominent route to the artist or label's shop. The fictional demo has no shop or stock, and its vinyl dialog states that clearly. Digital-only confirmation is explicitly simulated, with an illustrative price. No physical purchase, real payment or automatic vinyl/digital bundle is claimed. These are prototype patterns, not a new native Figma release or amended commercial terms.
