@@ -4,7 +4,7 @@ The app is static HTML, CSS and JavaScript. `app.js` renders hash routes into th
 
 ## Routes and state
 
-Discover filters the catalogue. My shelf combines browser-local saved and owned IDs. Record detail exposes side and track selection. Listening focuses the current record. Support explains the proposed subscription allocation. Wireframes include an annotated page and the interactive `?wireframe=1` mode.
+Discover filters the catalogue. My shelf combines browser-local saved and owned IDs. Record detail exposes side and track selection. Listening focuses the current record. Support is an alias for the October listening-budget walkthrough. Wireframes include an annotated page and the interactive `?wireframe=1` mode.
 
 `porto-saved` and `porto-owned` store arrays in localStorage. `porto-shelf-seed-v1` seeds the original collection once; `porto-catalog-v2` adds the six later records once. `porto-catalog-v3` adds only the five artist editions once, preserving older removals and demo purchases. Removals persist after migration. Reset restores the whole collection and clears demo ownership. Storage is not an account or backend purchase record. Collection state uses localStorage, with no cookie or server account required. Records stay on the same browser and origin until removed or browser data is cleared. IDs are validated and deduplicated; saved and owned values are parsed independently so one malformed value does not reset the other. Rendering does not write storage. User changes persist immediately, and storage events update other open tabs. If storage is blocked or full, the app keeps the change for the current visit and explicitly reports that it was not saved persistently.
 
@@ -16,7 +16,7 @@ Saving from a music screen updates the collection controls in place, preserving 
 
 ## Playback
 
-The initial selection is Reformat, the first track on side A of the fictional Sugar Circuit release. Playback waits for the listener to press play.
+The initial selection is the Afterlight concept study. Playback waits for the listener to press play; initialization loads no audio source. The older catalogue remains available without altering its credits or collection state.
 
 `queueTrack` adds any album, side and track to the session queue without replacing the current track. `playQueuedTrack` consumes the queue in order before normal side progression resumes. `source` selects a local WAV or MP3 file. Playback follows each track's declared duration; seeking is shown for demo-owned copies. Automatic progression stops at the end of a side. A request counter prevents stale play promises from restoring UI state after a pause or new selection.
 
@@ -53,3 +53,15 @@ There is no payment provider, user account service, persistent rights registry, 
 Play the music starts the artist's record without leaving the profile. Rendering the directory, filtering the grid and opening the detail dialog never replaces the audio element or changes its source. The dialog uses browser focus trapping and Escape dismissal, with a descriptive title and focus return. Navigating away closes it. Record collection controls retain the existing local collection behaviour.
 
 The retention hypothesis is that artist-selected context gives listeners a reason to explore while music continues. No measured retention claim, engagement counters, algorithmic feed, social actions, new analytics or notifications are introduced.
+
+## October routes, model boundary and data
+
+`october.js` loads before `app.js`, defines route renderers and initializes after the existing player. `#home`, `#search`, `#studio`, `#variation/<id>`, `#feed`, `#creator/<id>`, `#you`, `#budget` and `#ledger` are the new surfaces. `#support` aliases budget. Existing record, artist, collection and listening routes remain. If the current item is a concept preview, Listening opens its variation surface.
+
+Afterlight uses a separate in-memory concept record with an explicit audio file and 24-second duration. It is not inserted into the fourteen-record catalogue or its ownership IDs. `source()` supports explicit fixture files; `resume()` checks the demo budget before allowing a variation. Ordinary catalogue playback, original previews and queue priority are preserved. Page navigation never replaces the audio element. Playback does not update the example balance or ledger.
+
+`porto-october-v1` holds validated variations, parent IDs, publish flags, creator follows, concept saves and illustrative budget state. A saved variation must reference an existing parent, one of four prepared presets and a validated local ID. Invalid IDs, unknown creators and unsupported presets are discarded on load. No raw prompt text is persisted. Local creation is bounded to 30 versions. Text rendering escapes input; custom model output is not accepted. Cross-tab storage events refresh state and pause a variation when a new cap blocks it. Private source documents are not bundled.
+
+The voice action inserts a clearly labelled sample transcript; no microphone or speech service is requested. The supported text requests select prepared fixtures and preserve source lineage. Local publish requires its own confirmation and is idempotent. The artist-permission panel describes fictional permissions, not an authorization check against a live rights registry. Creator credit is distinct from a royalty allocation.
+
+GBP ledger examples are separate from the listening-budget fixture. A proposed future payout record references the Aptos/USDC target without representing GBP as a USDC amount or inventing a transaction. No API, model, payment, wallet or chain is connected.
