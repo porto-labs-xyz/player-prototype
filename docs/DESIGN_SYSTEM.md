@@ -165,3 +165,7 @@ Variation names now use @username / chosen title, such as @luna.wav / Velvet Aft
 ## Compact voice dock and player boundary, 12 October 2026
 
 The sticky voice trigger shows only a waveform icon in a 48 by 44 pixel button. Retain its accessible Start voice input / Stop voice input label, listening pulse and voice-sheet behavior. The adjacent text-request action remains available. At desktop widths the left sidebar ends above the combined player and command dock, including the safe-area inset; the player paints above navigation so library content cannot cover the transport.
+
+## Co-create social preview, 12 October 2026
+
+The prototype uses Porto · Co-create for the document, Open Graph and Twitter titles. The shared description is: Co-create music. Listen to originals, make your version and explore every track’s story. Social crawlers receive static metadata in the initial HTML, with the production canonical URL and a public 1200 by 630 PNG. The image uses the approved Porto mark, Co-create. in paper type and a charcoal background, independent of the listener’s theme. Its versioned filename is assets/social/porto-co-create-dark-v1.png; the adjacent SVG preserves the editable composition. This is a prototype sharing asset, not a new global tagline or design-system release. WhatsApp rendering and cache refresh remain controlled by the receiving app.
