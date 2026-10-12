@@ -215,13 +215,23 @@ const PortoOctober = (() => {
       b.setAttribute('aria-busy',String(active&&preparingPlayback));
     });
     document.querySelectorAll('[data-track]').forEach(el=>el.classList.toggle('is-current',current.concept&&current.variationId===el.dataset.track));
+    syncWaveforms();
+  }
+  function syncWaveforms(){
     document.querySelectorAll('[data-wave]').forEach(el=>{
       const active=current.concept&&current.variationId===el.dataset.wave;
+      if(!active&&el.dataset.waveActive!=='true')return;
+      el.dataset.waveActive=String(active);
       const total=active?trackDuration():sound(el.dataset.wave).duration;
       const position=active?(pendingSeek??audio.currentTime):0,progress=total?position/total:0;
       const scrubber=el.querySelector('[data-wave-seek]');
       if(scrubber){scrubber.value=String(Math.round(progress*1000));scrubber.setAttribute('aria-valuetext',`${fmt(position)} of ${fmt(total)}`);}
-      el.querySelectorAll('i').forEach((bar,i,bars)=>bar.classList.toggle('heard',i/bars.length<progress));
+      const bars=el.querySelectorAll('i'),heard=Math.ceil(bars.length*progress);
+      if(el.dataset.heard!==String(heard)){
+        const before=Number(el.dataset.heard)||0;
+        for(let i=Math.min(before,heard);i<Math.max(before,heard)&&i<bars.length;i++)bars[i].classList.toggle('heard',i<heard);
+        el.dataset.heard=String(heard);
+      }
     });
   }
   const btn = (action,label,id='',cls='secondary') => `<button type="button" class="${cls}" data-oct="${action}" data-id="${esc(id)}">${label}</button>`;
@@ -399,7 +409,7 @@ const PortoOctober = (() => {
   function init() {
     voice=PortoVoice.create({onText:text=>{prompt=text;const input=document.querySelector('#oct-prompt');if(input)input.value=text;},onState:syncVoice});
     current=demoRecord('original');updatePlayer();
-    audio.addEventListener('timeupdate',syncPlayback);
+    audio.addEventListener('timeupdate',syncWaveforms);
     audio.addEventListener('timeupdate',observePlay);
     audio.addEventListener('emptied',()=>{playSession={id:current.concept?current.variationId:'',seconds:0,last:0,counted:false};});
     window.addEventListener('hashchange',()=>{if(location.hash!==voiceRoute)closeSheet();});

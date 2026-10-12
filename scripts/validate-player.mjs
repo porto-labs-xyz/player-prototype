@@ -483,3 +483,9 @@ const playingWrites=stableButtons.run('buttonWrites');assert(playingWrites>initi
 for(let i=0;i<5;i++)stableButtons.elements.get('#audio').events.timeupdate();
 assert.equal(stableButtons.run('buttonWrites'),playingWrites);
 console.log('PASS: playback progress preserves play-button contents and only state changes replace icons.');
+
+// Inactive feed waveforms must not repaint thousands of bars on every audio tick.
+const lightProgress=session({}, {october:true});
+lightProgress.run(`var inactiveWave={dataset:{wave:'luna-dreamy'},querySelector(){throw Error('Inactive waveform touched')},querySelectorAll(){throw Error('Inactive bars touched')}};document.querySelectorAll=selector=>selector==='[data-wave]'?[inactiveWave]:[]`);
+for(let i=0;i<8;i++)lightProgress.elements.get('#audio').events.timeupdate();
+console.log('PASS: progress ticks skip inactive waveform controls and bars.');

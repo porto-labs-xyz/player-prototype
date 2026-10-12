@@ -2,15 +2,17 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 const code=fs.readFileSync(new URL('../dist/audio-warp.js',import.meta.url),'utf8');
-let release,disposed=0;
+let release,disposed=0,contexts=[],nodes=[];
 const param=()=>({value:0,rampTo(v){this.value=v}});
-class Node {constructor(){this.gain=param();this.wet=param();this.frequency=param()}toDestination(){return this}connect(){}chain(){}start(){return this}getValue(){return .2}}
+class Node {constructor(options){this.options=options;nodes.push(this);this.gain=param();this.wet=param();this.frequency=param()}toDestination(){return this}connect(){}chain(){}disconnect(){}dispose(){this.disposed=true}start(){return this}getValue(){return .2}}
 const buffer={reverse:false,get(){return {length:3,numberOfChannels:1,sampleRate:44100,getChannelData:()=>Float32Array.from(this.reverse?[.5,0,-.5]:[-.5,0,.5])}},dispose(){disposed++}};
 const audio={src:'original.mp3',currentTime:42,dataset:{originalSource:'original.mp3'},addEventListener(){},load(){this.currentTime=0}};
 let created=[];
-const context=vm.createContext({console,Blob,URL:{createObjectURL(blob){created.push(blob);return 'blob:reverse'},revokeObjectURL(){}},Tone:{start:async()=>{},Gain:Node,PitchShift:Node,Filter:Node,Distortion:Node,FeedbackDelay:Node,BitCrusher:Node,Tremolo:Node,Limiter:Node,Meter:Node,connect(){},getContext:()=>({rawContext:{createMediaElementSource:()=>({})}}),ToneAudioBuffer:{fromUrl:()=>new Promise(resolve=>{release=()=>resolve(buffer)})}}});
+const context=vm.createContext({console,Blob,URL:{createObjectURL(blob){created.push(blob);return 'blob:reverse'},revokeObjectURL(){}},Tone:{Context:class {constructor(options){contexts.push(options)}},setContext(){},start:async()=>{},Gain:Node,PitchShift:Node,Filter:Node,Distortion:Node,FeedbackDelay:Node,BitCrusher:Node,Tremolo:Node,Limiter:Node,Meter:Node,connect(){},getContext:()=>({rawContext:{createMediaElementSource:()=>({})}}),ToneAudioBuffer:{fromUrl:()=>new Promise(resolve=>{release=()=>resolve(buffer)})}}});
 vm.runInContext(code,context);context.audio=audio;
 let current=true;context.isCurrent=()=>current;
+await vm.runInContext('PortoWarp.prepare(audio,null,isCurrent)',context);
+assert.equal(contexts.length,0);assert.equal(nodes.length,0);assert.equal(audio.dataset.warp,'native');
 const pending=vm.runInContext('PortoWarp.prepare(audio,{reverse:1},isCurrent)',context);
 await new Promise(setImmediate);current=false;release();await pending;
 assert.equal(audio.src,'original.mp3');assert.equal(audio.currentTime,42);assert.equal(disposed,1);
@@ -20,3 +22,16 @@ assert.equal(audio.src,'blob:reverse');assert.equal(audio.currentTime,42);
 const samples=new DataView(await created[0].arrayBuffer());assert.equal(samples.getInt16(44,true),16383);assert.equal(samples.getInt16(48,true),-16384);
 await vm.runInContext('PortoWarp.prepare(audio,null,isCurrent)',context);assert.equal(audio.src,'original.mp3');assert.equal(audio.currentTime,42);
 console.log('PASS: reversed PCM, cancelled preparation cannot replace a newer source, cache reuse and position-preserving original restore.');
+
+assert.equal(contexts.length,1);assert.equal(contexts[0].latencyHint,'playback');
+assert.equal(audio.dataset.audioProcessors,'');
+await vm.runInContext('PortoWarp.prepare(audio,{pitch:2,tone:6500,echo:.3},isCurrent)',context);
+assert.equal(audio.dataset.audioProcessors,'pitch,filter,echo,limiter');
+assert(!nodes.some(n=>n.options?.bits||n.options?.type==='square'));
+const effects=nodes.slice(-4);
+await vm.runInContext('PortoWarp.prepare(audio,null,isCurrent)',context);
+assert(effects.every(n=>n.disposed));assert.equal(audio.dataset.audioProcessors,'');
+await vm.runInContext('PortoWarp.prepare(audio,{crush:.8},isCurrent)',context);
+assert.equal(audio.dataset.audioProcessors,'crusher,limiter');
+assert.equal(nodes.at(-2).options.bits,4);
+console.log('PASS: originals stay native initially, playback latency configured, only required effects constructed, and unused processors disposed.');

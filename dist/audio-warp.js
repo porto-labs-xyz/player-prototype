@@ -12,7 +12,7 @@ const PortoWarp = (() => {
     slow:{speed:.8,pitch:-4,tone:12000,grit:.05,echo:.08},
     dreamslow:{speed:.8,pitch:3,tone:5000,grit:.08,echo:.4}
   };
-  let media,source,chain,gate,dry,wet,meter,applied={...defaults},active=false,bypassed=false;
+  let media,source,chain={},chainKey='',gate,dry,wet,meter,applied={...defaults},active=false,bypassed=false;
   const available=()=>typeof Tone!=='undefined';
   function sanitize(value={}) {
     return Object.fromEntries(Object.entries(limits).map(([key,[min,max]])=>[key,Number.isFinite(value[key])?Math.min(max,Math.max(min,value[key])):defaults[key]]));
@@ -44,16 +44,26 @@ const PortoWarp = (() => {
   }
   function apply(settings,enabled=true) {
     applied=sanitize(settings);active=enabled;
-    if(!chain)return;
+    if(!media)return;
     const values=enabled&&!bypassed?applied:defaults;
     media.preservesPitch=true;media.playbackRate=values.speed;
-    chain.pitch.pitch=values.pitch;
-    chain.pitch.wet.value=values.pitch===0?0:1;
-    chain.filter.frequency.rampTo(values.tone,.04);
-    chain.grit.distortion=values.grit;chain.grit.wet.value=values.grit?0.65:0;
-    chain.echo.wet.rampTo(values.echo,.04);
-    chain.crusher.wet.rampTo(values.crush,.04);
-    chain.tremolo.wet.rampTo(values.chop*.45,.04);
+    const key=JSON.stringify([enabled&&!bypassed,values]);
+    if(key!==chainKey){
+      wet.disconnect();
+      for(const node of Object.values(chain))node.dispose();
+      chain={};chainKey=key;
+      if(enabled&&!bypassed){
+        if(values.pitch)chain.pitch=new Tone.PitchShift({pitch:values.pitch,windowSize:.1,wet:1});
+        if(values.tone<20000)chain.filter=new Tone.Filter(values.tone,'lowpass');
+        if(values.grit)chain.grit=new Tone.Distortion({distortion:values.grit,wet:.65});
+        if(values.crush)chain.crusher=new Tone.BitCrusher({bits:4,wet:values.crush});
+        if(values.chop)chain.tremolo=new Tone.Tremolo({frequency:9,depth:1,type:'sine',wet:values.chop*.45}).start();
+        if(values.echo)chain.echo=new Tone.FeedbackDelay({delayTime:.23,feedback:.25,wet:values.echo});
+        chain.limiter=new Tone.Limiter(-3);
+        wet.chain(...Object.values(chain),gate);
+      }
+      media.dataset.audioProcessors=Object.keys(chain).join(',');
+    }
     dry.gain.value=enabled&&!bypassed?0:1;wet.gain.value=enabled&&!bypassed?1:0;
     media.dataset.warp=enabled&&!bypassed?'live':'bypass';
     media.dataset.warpSettings=JSON.stringify(values);
@@ -92,21 +102,29 @@ const PortoWarp = (() => {
   }
   async function prepare(element,settings,isCurrent=()=>true) {
     if(!available())return false;
+    // Originals use native playback until an effect actually needs Web Audio.
+    if(!gate&&!settings){
+      element.preservesPitch=true;element.playbackRate=1;
+      element.dataset.warp='native';element.dataset.audioProcessors='';
+      element.dataset.warpSettings=JSON.stringify(defaults);return true;
+    }
+    if(!gate)Tone.setContext(new Tone.Context({latencyHint:'playback',lookAhead:.15}),true);
     // Resume within the user gesture, before awaiting any work.
     const started=Tone.start();
-    if(!chain){
+    if(!gate){
       media=element;
       gate=new Tone.Gain(0).toDestination();dry=new Tone.Gain(1);wet=new Tone.Gain(0);
-      chain={pitch:new Tone.PitchShift({pitch:0,windowSize:.08,wet:0}),filter:new Tone.Filter(20000,'lowpass'),grit:new Tone.Distortion({distortion:0,wet:0}),crusher:new Tone.BitCrusher({bits:4,wet:0}),tremolo:new Tone.Tremolo({frequency:9,depth:1,type:'square',wet:0}).start(),echo:new Tone.FeedbackDelay({delayTime:.23,feedback:.25,wet:0}),limiter:new Tone.Limiter(-2)};
       meter=new Tone.Meter({normalRange:true});gate.connect(meter);
       media.addEventListener('timeupdate',()=>{media.dataset.outputLevel=String(meter.getValue());});
-      dry.connect(gate);wet.chain(chain.pitch,chain.filter,chain.grit,chain.crusher,chain.tremolo,chain.echo,chain.limiter,gate);
+      dry.connect(gate);
+      media.dataset.audioLatency='playback';
       source=Tone.getContext().rawContext.createMediaElementSource(media);
       Tone.connect(source,dry);Tone.connect(source,wet);
       media.addEventListener('playing',()=>{if(!media.paused)gate.gain.rampTo(1,.02);});
       for(const event of ['pause','ended','emptied'])media.addEventListener(event,()=>{if(event!=='pause'||media.paused)gate.gain.value=0;});
     }
     await started;
+    element.dataset.audioContextState=Tone.getContext().state;
     if(!isCurrent())return false;
     const values=sanitize(settings||defaults),original=element.dataset.originalSource||element.src;
     const key=original+'|'+Number(values.reverse>.5)+'|'+Number(values.chop>.5);
