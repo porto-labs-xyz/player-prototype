@@ -120,3 +120,8 @@ Keep the request composer directly below the row. The microphone pulses while st
 Use Reformat/002, Reformat/003 and onward for variation titles. Keep Original as the source label; 001 is reserved internally. Keep Dreamy, Night drive, Slow drift and Dreamy & slow as metadata tags, not title suffixes. Each version gets a distinct, stable browser-rendered crop, colour treatment and graphic composition derived from Kiki’s source artwork. Stamp its creator handle, such as @luna.wav, directly over the image in a paper label with dark type. Keep the profile-photo link and play control visible beneath the stamp. Small thumbnails retain the treatment; the track page exposes the full cover. Local versions use @you until a real account profile exists.
 
 These are prototype cover treatments, with no image-generation service or change to the shared brand tokens. Numbers and artwork persist through reloads and remain consistent across the listening surfaces.
+
+
+### Image-effects refinement
+
+Apply a visible image effect in addition to colour: Dreamy uses soft-focus blur and a hazy double exposure; Night drive uses shifted glitch bands; Slow drift uses directional smear and ghosting; Dreamy & slow uses liquid displacement. Effects are static and rendered with CSS/SVG. Keep creator stamps, edition numbers, mood labels, profile photos and controls crisp. The source original receives no distortion.

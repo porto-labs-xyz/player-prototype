@@ -33,9 +33,10 @@ const PortoOctober = (() => {
     const [tint,shade,hue]=palettes[v.preset],n=v.number;
     return `--art-tint:${tint};--art-shade:${shade};--art-hue:${hue+(n-2)*7}deg;--art-turn:${(n%5-2)*2}deg;--art-scale:${1.12+(n%4)*.08};--art-x:${35+(n*13%36)}%;--art-angle:${n*47%360}deg;--art-orbit:${12+n*17%55}%;`;
   }
+  const artEffect = id => ({dreamy:'haze',night:'glitch',slow:'smear',dreamslow:'liquid'}[find(id)?.preset]||'');
   function artwork(id,extra='') {
     const v=find(id);
-    return `<span class="oct-artwork ${v?'is-variation':''} ${extra}" style="${artStyle(id)}" role="img" aria-label="${esc(v?title(id)+' artwork, stamped '+handle(id):'Sugar Circuit original artwork')}"><img src="assets/sugar-circuit.webp" alt="">${v?`<span class="oct-art-orbit" aria-hidden="true"></span><span class="oct-art-number" aria-hidden="true">/${edition(id)}</span><span class="oct-art-stamp" aria-hidden="true">${handle(id)}</span>`:''}</span>`;
+    return `<span class="oct-artwork ${v?'is-variation oct-effect-'+artEffect(id):''} ${extra}" style="${artStyle(id)}" role="img" aria-label="${esc(v?title(id)+' artwork, stamped '+handle(id):'Sugar Circuit original artwork')}"><img src="assets/sugar-circuit.webp" alt="">${v?`<span class="oct-art-echo" aria-hidden="true"></span><span class="oct-art-slice" aria-hidden="true"></span><span class="oct-art-orbit" aria-hidden="true"></span><span class="oct-art-number" aria-hidden="true">/${edition(id)}</span><span class="oct-art-stamp" aria-hidden="true">${handle(id)}</span>`:''}</span>`;
   }
   const money = n => '£'+n.toFixed(2);
   const capped = () => state.spent >= 10+state.topup;
@@ -196,7 +197,7 @@ const PortoOctober = (() => {
     } else {delete document.querySelector('#player-collection').dataset.oct;document.querySelector('#player-collection').dataset.action='save';}
     const mini=document.querySelector('#oct-mini-art'),stamp=document.querySelector('#oct-mini-stamp');
     const id=current.concept?current.variationId:'original',v=find(id);
-    if(mini){mini.className='oct-artwork oct-mini-art'+(v?' is-variation':'');mini.style.cssText=artStyle(id);}
+    if(mini){mini.className='oct-artwork oct-mini-art'+(v?' is-variation oct-effect-'+artEffect(id):'');mini.style.cssText=artStyle(id);}
     if(stamp){stamp.textContent=v?handle(id):'';stamp.hidden=!v;}
     syncVoice();syncPlayback();
   }
