@@ -8,13 +8,14 @@ const profileSource=fs.readFileSync(path.join(root,'dist/artist-profiles.js'),'u
 const audioSource=fs.readFileSync(path.join(root,'dist/reformat-audio.js'),'utf8');
 const feedAudioSource=fs.readFileSync(path.join(root,'dist/feed-audio.js'),'utf8');
 const voiceSource=fs.readFileSync(path.join(root,'dist/voice-input.js'),'utf8');
+const warpSource=fs.readFileSync(path.join(root,'dist/audio-warp.js'),'utf8');
 const octoberSource=fs.readFileSync(path.join(root,'dist/october.js'),'utf8');
 const playerSource=fs.readFileSync(path.join(root,'dist/app.js'),'utf8');
 function session(initial={},options={}){
  const elements=new Map(),storage=new Map(Object.entries(initial)),windowEvents={},documentEvents={};
- const element=id=>{if(!elements.has(id))elements.set(id,{id,innerHTML:'',textContent:'',value:'',src:'',autoplay:false,playCalls:0,style:{},dataset:{},currentTime:0,ended:false,events:{},classList:{toggle(){},add(){},remove(){}},setAttribute(k,v){this[k]=v},getAttribute(k){return this[k]},removeAttribute(k){if(k!=='autoplay')delete this[k]},addEventListener(k,v){this.events[k]=v},load(){},pause(){this.events.pause?.()},async play(){this.playCalls++;this.events.play?.();this.events.playing?.()},focus(){},showModal(){this.open=true},close(){this.open=false}});return elements.get(id)};
+ const element=id=>{if(!elements.has(id))elements.set(id,{id,innerHTML:'',textContent:'',value:'',src:'',autoplay:false,playCalls:0,style:{},dataset:{},currentTime:0,ended:false,events:{},classList:{toggle(){},add(){},remove(){}},setAttribute(k,v){this[k]=v},getAttribute(k){return this[k]},removeAttribute(k){if(k!=='autoplay')delete this[k]},addEventListener(k,v){const old=this.events[k];this.events[k]=old?(...args)=>{old(...args);v(...args)}:v},load(){this.currentTime=0;this.events.emptied?.()},pause(){this.paused=true;this.events.pause?.()},async play(){this.paused=false;this.playCalls++;this.events.play?.();this.events.playing?.()},focus(){},showModal(){this.open=true},close(){this.open=false}});return elements.get(id)};
  const context=vm.createContext({console,URLSearchParams,setTimeout:()=>0,clearTimeout(){},location:{hash:'',search:''},window:{addEventListener:(name,fn)=>windowEvents[name]=fn,scrollTo(){}},document:{querySelector:element,querySelectorAll:()=>[],addEventListener(name,fn){(documentEvents[name]??=[]).push(fn)},body:element('body')},localStorage:{getItem:k=>{if(options.blockRead)throw Error("storage blocked");return storage.get(k)??null},setItem:(k,v)=>{if(options.blockWrite)throw Error("storage full");storage.set(k,v)}}});
- vm.runInContext(editionSource+'\n'+profileSource+'\n'+(options.october?audioSource+'\n'+feedAudioSource+'\n'+voiceSource+'\n'+octoberSource+'\n':'')+playerSource,context);
+ vm.runInContext(editionSource+'\n'+profileSource+'\n'+(options.october?audioSource+'\n'+feedAudioSource+'\n'+voiceSource+'\n'+warpSource+'\n'+octoberSource+'\n':'')+playerSource,context);
  return {context,elements,storage,windowEvents,documentEvents,run:code=>vm.runInContext(code,context)};
 }
 const s=session();
@@ -139,7 +140,7 @@ const submit=(s,text)=>{s.run("document.querySelector('#oct-prompt')").value=tex
 assert.equal(october.run('current.variationId'),'original');
 assert.equal(october.elements.get('#audio').src,'');
 assert.equal(october.elements.get('#audio').playCalls,0);
-assert.match(october.run("PortoOctober.view('home')"),/Your feed/);
+assert.match(october.run("PortoOctober.view('home')"),/In your rotation/);
 assert.match(october.run("PortoOctober.view('budget')"),/No subscription/);
 assert.doesNotMatch(october.run("support()"),/25%|treasury/);
 assert.match(october.run("PortoOctober.view('studio')"),/type="button"[^>]*data-oct="voice"/);
@@ -154,8 +155,8 @@ octoberState=JSON.parse(october.storage.get('porto-reformat-v2'));
 const childId=octoberState.variations[1].id;
 assert.equal(octoberState.variations[1].parent,parentId);
 action(october,'lineage',childId);
-assert.match(october.elements.get('#dialog-content').innerHTML,/Dreamy/);
-assert.match(october.elements.get('#dialog-content').innerHTML,/Slow drift/);
+assert.match(october.run(`PortoOctober.view('variation/${childId}')`),/Dreamy/);
+assert.match(october.run(`PortoOctober.view('variation/${childId}')`),/Slow drift/);
 action(october,'share',childId);
 assert.equal(JSON.parse(october.storage.get('porto-reformat-v2')).variations[1].published,false);
 action(october,'publish',childId);
@@ -194,7 +195,7 @@ submit(noOctoberStorage,'Make it dreamy.');
 assert.match(noOctoberStorage.elements.get('#toast').textContent,/this visit only/);
 for(const preset of ['dreamy','night','slow','dreamslow'])assert(fs.statSync(path.join(root,`dist/assets/reformat-${preset}.mp3`)).size>1000);
 assert.match(october.run("PortoOctober.view('feed')"),/oct-track-person/);
-assert.match(october.run("PortoOctober.view('original')"),/<h1>Original<\/h1>/);
+assert.match(october.run("PortoOctober.view('original')"),/<h1>Reformat<\/h1>/);
 assert(october.run("ReformatAudio.slow.duration>ReformatAudio.original.duration"));
 assert.equal(october.run('ReformatAudio.original.peaks.length'),80);
 console.log('PASS: October idle startup, supported requests, parent lineage, publish confirmation, persistence, follows, saved versions, cap enforcement, original access, top-up/reset, attribution and corrupt/blocked storage.');
@@ -230,7 +231,7 @@ console.log('PASS: stable numbered editions, old drafts migrated, per-edition ar
 
 // Multi-source versions must never borrow another track's audio, artwork or lineage.
 const community=session({}, {october:true});
-assert.match(community.run("PortoOctober.view('home')"),/Your feed/);
+assert.match(community.run("PortoOctober.view('home')"),/In your rotation/);
 assert.equal((community.run("PortoOctober.view('feed')").match(/class="oct-post"/g)||[]).length,25);
 for(const [source,clips] of Object.entries(community.run('FeedAudio'))){
  for(const clip of Object.values(clips)){
@@ -256,8 +257,8 @@ const reloadCommunity=session(Object.fromEntries(community.storage),{october:tru
 action(reloadCommunity,'play',juneVersion.id);
 assert.equal(reloadCommunity.elements.get('#audio').src,'assets/feed-dream-culture-dreamy.mp3');
 action(reloadCommunity,'lineage',juneVersion.id);
-assert.match(reloadCommunity.elements.get('#dialog-content').innerHTML,/Dream Culture/);
-assert.doesNotMatch(reloadCommunity.elements.get('#dialog-content').innerHTML,/Reformat/);
+assert.match(reloadCommunity.run(`PortoOctober.view('variation/${juneVersion.id}')`),/Dream Culture/);
+assert.doesNotMatch(reloadCommunity.run(`PortoOctober.view('variation/${juneVersion.id}')`),/<h1>Reformat/);
 action(reloadCommunity,'budget-cap');
 action(reloadCommunity,'play','original-dream-culture');
 assert.equal(reloadCommunity.elements.get('#audio').src,'assets/borrowed-sun-a-1.mp3');
@@ -271,3 +272,37 @@ assert.equal((reloadCommunity.run("PortoOctober.view('feed')").match(/class="oct
 action(reloadCommunity,'follow','noor');
 assert.match(reloadCommunity.run("PortoOctober.view('feed')"),/Dream Culture\/002/);
 console.log('PASS: 8 source tracks, 25 seeded posts, distinct playable audio, measured waveforms, source artwork, per-track numbering, migration, lineage, filters and original access after budget cap.');
+
+// A genealogy contains siblings, descendants and local drafts, never another song.
+const dna=session({}, {october:true});
+let family=dna.run("PortoOctober.view('variation/luna-dreamy')");
+for(const title of ['Reformat/002','Reformat/003','Reformat/004','Reformat/005'])assert(family.includes(title));
+assert.equal((family.match(/class="oct-gene-node /g)||[]).length,5);
+assert(!family.includes('Dream Culture/'));
+assert.doesNotMatch(dna.run("PortoOctober.view('home')"),/Your feed\./);
+dna.run("PortoOctober.view('variation/luna-dreamy')");
+for(const fn of dna.documentEvents.input)fn({target:{dataset:{warp:'pitch'},value:'7'}});
+dna.run('PortoOctober.saveWarp()');
+let dnaState=JSON.parse(dna.storage.get('porto-reformat-v2'));
+const custom=dnaState.variations[0];
+assert.equal(custom.parent,'luna-dreamy');assert.equal(custom.settings.pitch,7);assert.equal(custom.published,false);
+assert.equal(custom.number,6);
+const dnaReload=session(Object.fromEntries(dna.storage),{october:true});
+assert.match(dnaReload.run(`PortoOctober.view('variation/${custom.id}')`),/value="7"/);
+assert.equal((dnaReload.run("PortoOctober.view('original')").match(/class="oct-gene-node /g)||[]).length,6);
+assert.equal(dnaReload.run("PortoWarp.sanitize({speed:99,pitch:-200,echo:Infinity}).speed"),1.4);
+assert.equal(dnaReload.run("PortoWarp.sanitize({pitch:-200}).pitch"),-12);
+// Count actual incremental playback once per source session. Pauses and seeks do not inflate it.
+action(dnaReload,'play','luna-dreamy');
+const media=dnaReload.elements.get('#audio');media.duration=219;media.playbackRate=1;
+for(let i=1;i<=15;i++){media.currentTime=i;media.events.timeupdate();}
+media.pause();media.currentTime=40;media.events.timeupdate();
+media.paused=false;
+for(let i=41;i<=60;i++){media.currentTime=i;media.events.timeupdate();}
+assert.equal(JSON.parse(dnaReload.storage.get('porto-reformat-v2')).plays['luna-dreamy'],1);
+for(let i=61;i<=100;i++){media.currentTime=i;media.events.timeupdate();}
+assert.equal(JSON.parse(dnaReload.storage.get('porto-reformat-v2')).plays['luna-dreamy'],1);
+media.currentTime=180;media.events.timeupdate();
+assert.equal(JSON.parse(dnaReload.storage.get('porto-reformat-v2')).plays['luna-dreamy'],1);
+assert.match(session(Object.fromEntries(dnaReload.storage),{october:true}).run("PortoOctober.view('variation/luna-dreamy')"),/1 in this browser/);
+console.log('PASS: complete genealogy, source isolation, custom effects saved as child versions, effect bounds, sustained-play counting, pause/seek protection and count persistence.');

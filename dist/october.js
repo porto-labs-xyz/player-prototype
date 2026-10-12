@@ -59,7 +59,7 @@ const PortoOctober = (() => {
         parent:j===2?source.id+'-dreamy':originalId(source.id),published:true,caption:captions[(i*3+j)%captions.length]});
     });
   });
-  const empty = () => ({variations:[], follows:[], saved:[], spent:6.4, topup:0});
+  const empty = () => ({variations:[], follows:[], saved:[], spent:6.4, topup:0, plays:{}});
   let state=empty(), storageOK=true, selected='original', feedFilter='all', prompt='', notice='', searchText='', genreFilter='all';
   const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const all = () => [...seeds,...state.variations];
@@ -82,6 +82,26 @@ const PortoOctober = (() => {
     const v=find(id);
     return `<span class="oct-artwork ${v?'is-variation oct-effect-'+artEffect(id):''} ${extra}" style="${artStyle(id)}" role="img" aria-label="${esc(v?title(id)+' artwork, stamped '+handle(id):sourceFor(id).title+' original artwork')}"><img src="assets/${sourceFor(id).art}" alt="" loading="lazy">${v?`<span class="oct-art-echo" aria-hidden="true"></span><span class="oct-art-slice" aria-hidden="true"></span><span class="oct-art-orbit" aria-hidden="true"></span><span class="oct-art-number" aria-hidden="true">/${edition(id)}</span><span class="oct-art-stamp" aria-hidden="true">${handle(id)}</span>`:''}</span>`;
   }
+  const settingsFor = id => typeof PortoWarp==='undefined'?null:PortoWarp.sanitize(find(id)?.settings||PortoWarp.presets[find(id)?.preset]||PortoWarp.defaults);
+  let editId='', editSettings=null, compare=false;
+  function editFor(id){if(editId!==id){editId=id;editSettings=settingsFor(id);compare=false;if(typeof PortoWarp!=='undefined')PortoWarp.bypass(false);}return editSettings;}
+  const examplePlays = id => {if(find(id)?.creator==='you')return 0;let hash=17;for(const c of id)hash=(hash*31+c.charCodeAt(0))%100000;return isOriginal(id)?18000+hash:120+hash%18000;};
+  const playTotal = id => examplePlays(id)+(state.plays[id]||0);
+  const countLabel = id => `<span data-play-count="${esc(id)}">${playTotal(id).toLocaleString('en-GB')} plays</span>`;
+  let playSession={id:'',seconds:0,last:0,counted:false};
+  function observePlay(){
+    if(!current.concept)return;
+    const id=current.variationId,t=audio.currentTime||0;
+    if(playSession.id!==id)playSession={id,seconds:0,last:t,counted:false};
+    const delta=t-playSession.last;playSession.last=t;
+    if(!audio.paused&&!audio.seeking&&delta>0&&delta<2.5)playSession.seconds+=delta/(audio.playbackRate||1);
+    const threshold=Math.min(30,(audio.duration||sourceFor(id).audio.original.duration)/2);
+    if(!playSession.counted&&playSession.seconds>=threshold){
+      playSession.counted=true;state.plays[id]=Math.min(1000000,(state.plays[id]||0)+1);persist();
+      document.querySelectorAll('[data-play-count]').forEach(el=>{el.textContent=playTotal(el.dataset.playCount).toLocaleString('en-GB')+' plays';});
+      const note=document.querySelector('#oct-local-plays');if(note)note.textContent=(state.plays[selected]||0)+' in this browser';
+    }
+  }
   const money = n => '£'+n.toFixed(2);
   const capped = () => state.spent >= 10+state.topup;
   function load() {
@@ -95,10 +115,11 @@ const PortoOctober = (() => {
         const source=parent?.source||sourceFor(v.parent).id;
         const numbers=new Set([1,...seeds,...next.variations].map(x=>typeof x==='number'?x:x.source===source?x.number:1));
         const number=Number.isSafeInteger(v.number)&&v.number>1&&v.number<100000&&!numbers.has(v.number)?v.number:Math.max(...numbers)+1;
-        next.variations.push({id:v.id,source,number,preset:v.preset,parent:v.parent,creator:'you',published:v.published===true});ids.add(v.id);
+        next.variations.push({id:v.id,source,number,preset:v.preset,parent:v.parent,creator:'you',published:v.published===true,...(v.settings&&typeof PortoWarp!=='undefined'?{settings:PortoWarp.sanitize(v.settings)}:{})});ids.add(v.id);
       }
       next.follows=[...new Set((Array.isArray(raw.follows)?raw.follows:[]).filter(id=>creators.some(c=>c.id===id)))];
       next.saved=[...new Set((Array.isArray(raw.saved)?raw.saved:[]).filter(id=>ids.has(id)))];
+      for(const [id,n] of Object.entries(raw.plays&&typeof raw.plays==='object'?raw.plays:{}))if(ids.has(id)&&Number.isSafeInteger(n)&&n>=0)next.plays[id]=Math.min(n,1000000);
       next.spent=Number.isFinite(raw.spent)?Math.max(0,Math.min(100,raw.spent)):6.4;
       next.topup=Number.isFinite(raw.topup)?Math.max(0,Math.min(90,raw.topup)):0;
       state=next;
@@ -109,7 +130,7 @@ const PortoOctober = (() => {
     try {localStorage.setItem(key,JSON.stringify(state));storageOK=true;return true;}
     catch {storageOK=false;toast('Updated for this visit only. Browser storage is unavailable.');return false;}
   }
-  const sound = id => sourceFor(id).audio[find(id)?.preset||'original'];
+  const sound = id => sourceFor(id).audio[typeof PortoWarp!=='undefined'&&PortoWarp.available()?'original':find(id)?.preset||'original'];
   const wave = (small=false,id=selected) => `<span class="oct-wave ${small?'small':''}" ${small?'':`data-wave="${esc(id)}"`} aria-hidden="true">${(small?[.25,.55,.9,.4,.75,1,.55,.8,.3]:sound(id).peaks).map((p,i)=>`<i style="--h:${Math.max(8,Math.round(p*100))}%;--delay:${i*.065}s"></i>`).join('')}</span>`;
   const avatar = id => `<img class="oct-avatar" loading="lazy" src="assets/${isOriginal(id)?sourceFor(id).art:id==='you'?'creators/you.svg':`creators/${id}.${['luna','kai','milo','sora'].includes(id)?'png':'svg'}`}" alt="">`;
   let voice, voiceRoute='';
@@ -124,12 +145,12 @@ const PortoOctober = (() => {
     const output=document.querySelector('#oct-voice-status');if(output)output.textContent=message;
   }
   function composer() {
-    return `<form id="oct-prompt-form"><label for="oct-prompt">Make this track yours <span id="oct-source-label">· ${esc(title(selected)+(isOriginal(selected)?' · Original':''))}</span></label><div class="oct-composer"><textarea id="oct-prompt" rows="2" maxlength="300" placeholder="Slow it down. Make it dreamy.">${esc(prompt)}</textarea><button class="oct-round" type="submit" aria-label="Choose prepared variation">↑</button></div><div class="oct-composer-tools">${btn('voice',wave(true)+'<span class="oct-voice-label">Talk to Porto</span>','','text-button')}<span>Speak or type a request</span></div><p id="oct-voice-status" class="oct-status" role="status"></p><div class="oct-suggestions">${Object.entries(presets).map(([id,p])=>btn('prompt',p.label,id,'oct-chip')).join('')}</div><p id="oct-request-status" class="oct-status" role="status">${esc(notice)}</p><p class="oct-voice-privacy">Speech uses your browser’s recognition service, which may process audio online. Review your text before submitting. Music versions are prepared, with no AI transformation.</p></form>`;
+    return `<form id="oct-prompt-form"><label for="oct-prompt">Make this track yours <span id="oct-source-label">· ${esc(title(selected)+(isOriginal(selected)?' · Original':''))}</span></label><div class="oct-composer"><textarea id="oct-prompt" rows="2" maxlength="300" placeholder="Slow it down. Make it dreamy.">${esc(prompt)}</textarea><button class="oct-round" type="submit" aria-label="Create a version">↑</button></div><div class="oct-composer-tools">${btn('voice',wave(true)+'<span class="oct-voice-label">Talk to Porto</span>','','text-button')}<span>Speak or type a request</span></div><p id="oct-voice-status" class="oct-status" role="status"></p><div class="oct-suggestions">${Object.entries(presets).map(([id,p])=>btn('prompt',p.label,id,'oct-chip')).join('')}</div><p id="oct-request-status" class="oct-status" role="status">${esc(notice)}</p><p class="oct-voice-privacy">Speech uses your browser’s recognition service, which may process audio online. Review your text before submitting. Sound changes use browser audio effects, with no AI transformation.</p></form>`;
   }
   function trackCard(id) {
     const v=find(id), source=sourceFor(id), creator=v?.creator||id;
     const person=creators.find(c=>c.id===creator);
-    return `<article class="oct-track-card" data-track="${id}"><div class="oct-track-art">${artwork(id)}<span class="oct-track-badge">${v?presets[v.preset].label:'Original'}</span><a class="oct-track-person" href="${v?'#creator/'+creator:'#artist/'+source.artistId}" aria-label="${person?.name||(creator==='you'?'Your profile':source.artist+' profile')}">${avatar(creator)}</a><button class="oct-round" data-oct="play" data-id="${id}" aria-label="Play ${title(id)}">${playIcon}</button></div><a class="oct-track-title" href="${routeFor(id)}"><strong>${title(id)}</strong><small>${source.artist}${v?' · '+handle(id):''}</small></a>${wave(false,id)}</article>`;
+    return `<article class="oct-track-card" data-track="${id}"><div class="oct-track-art"><a class="oct-art-link" href="${routeFor(id)}" aria-label="Explore ${title(id)} genealogy">${artwork(id)}</a><span class="oct-track-badge">${v?presets[v.preset].label:'Original'}</span><a class="oct-track-person" href="${v?'#creator/'+creator:'#artist/'+source.artistId}" aria-label="${person?.name||(creator==='you'?'Your profile':source.artist+' profile')}">${avatar(creator)}</a><button class="oct-round" data-oct="play" data-id="${id}" aria-label="Play ${title(id)}">${playIcon}</button></div><a class="oct-track-title" href="${routeFor(id)}"><strong>${title(id)}</strong><small>${source.artist}${v?' · '+handle(id):''}</small></a>${wave(false,id)}</article>`;
   }
   function syncPlayback() {
     const sourceLabel=document.querySelector('#oct-source-label');
@@ -153,7 +174,7 @@ const PortoOctober = (() => {
   function followButton(id) {return `<button class="oct-follow" data-oct="follow" data-id="${id}" aria-pressed="${state.follows.includes(id)}" aria-label="${state.follows.includes(id)?'Unfollow':'Follow'} ${creators.find(c=>c.id===id).name}">${state.follows.includes(id)?'Following':'Follow'}</button>`;}
   function variationCard(v) {
     const c=creators.find(c=>c.id===v.creator)||{name:'You',handle:'you'}, source=sourceFor(v.id);
-    return `<article class="oct-post"><div class="oct-post-person">${avatar(v.creator)}<a href="#creator/${v.creator}"><strong>${c.name}</strong><small>@${c.handle}</small></a>${v.creator==='you'?'<span class="oct-tag">YOUR VERSION</span>':followButton(v.creator)}</div>${v.caption?`<p class="oct-post-caption">${esc(v.caption)}</p>`:''}<div class="oct-post-track">${artwork(v.id,'oct-post-art')}<div><span class="oct-kicker">${presets[v.preset].label}</span><h3><a href="#variation/${v.id}">${title(v.id)}</a></h3><a class="oct-attribution" href="${routeFor(originalId(source.id))}">${source.artist} · ${source.genre}</a></div><button class="oct-round" data-oct="play" data-id="${v.id}" aria-label="Play ${title(v.id)}">${playIcon}</button></div>${wave(false,v.id)}<div class="oct-post-actions">${btn('lineage','View lineage',v.id,'text-button')}${btn('refine','Make your version',v.id,'text-button')}${btn('save',state.saved.includes(v.id)?'Saved':'Save',v.id,'text-button')}</div></article>`;
+    return `<article class="oct-post"><div class="oct-post-person">${avatar(v.creator)}<a href="#creator/${v.creator}"><strong>${c.name}</strong><small>@${c.handle}</small></a>${v.creator==='you'?'<span class="oct-tag">YOUR VERSION</span>':followButton(v.creator)}</div>${v.caption?`<p class="oct-post-caption">${esc(v.caption)}</p>`:''}<div class="oct-post-track"><a href="${routeFor(v.id)}" aria-label="Explore ${title(v.id)} genealogy">${artwork(v.id,'oct-post-art')}</a><div><span class="oct-kicker">${presets[v.preset].label}</span><h3><a href="#variation/${v.id}">${title(v.id)}</a></h3><a class="oct-attribution" href="${routeFor(originalId(source.id))}">${source.artist} · ${source.genre}</a></div><button class="oct-round" data-oct="play" data-id="${v.id}" aria-label="Play ${title(v.id)}">${playIcon}</button></div>${wave(false,v.id)}<div class="oct-post-actions">${btn('lineage','Genealogy',v.id,'text-button')}${btn('refine','Make your version',v.id,'text-button')}${btn('save',state.saved.includes(v.id)?'Saved':'Save',v.id,'text-button')}</div></article>`;
   }
   function searchResults() {
     const q=searchText.trim().toLowerCase();
@@ -168,7 +189,7 @@ const PortoOctober = (() => {
   function studio(id) {
     if(id && valid(id))selected=id;
     const v=find(selected), isVariation=!!v, source=sourceFor(selected);
-    return `<div class="oct-section-heading"><div><p class="oct-kicker">${source.title.toUpperCase()} / ${source.artist.toUpperCase()}</p><h1>${isVariation?title(selected):'Original'}</h1>${isVariation?`<span class="oct-tag">${presets[v.preset].label}</span>`:''}</div>${badge()}</div><div class="oct-studio">${isVariation?artwork(selected,'oct-studio-art'):''}<a class="oct-source" href="#record/${source.record}">${artwork(selected,'oct-source-art')}<span><strong>${title(selected)}</strong><small>${source.album} · ${source.genre}</small></span><span aria-hidden="true">↗</span></a>${wave()}<div class="actions">${btn('play',playIcon+' Play',selected,'primary')}${btn('lineage','View lineage',selected)}${v?.creator==='you'?btn('share',v.published?'Shared to your feed':'Share to feed',selected):''}</div>${composer()}<details class="oct-permissions"><summary>About these versions</summary><p>Four prepared audio edits let you try the listening and sharing flow. Dreamy adds echo, Night drive filters and slows the track, Slow drift lowers the tempo, and Dreamy & slow combines both edits. No model or instrument separation runs here.</p><p>${source.title} is by Kevin MacLeod, used under CC BY 4.0. Artist and creator profiles are fictional. An eventual artist model requires the source artist’s permissions.</p></details></div>${footnote()}`;
+    return `<div class="oct-section-heading"><div><p class="oct-kicker">${source.title.toUpperCase()} / ${source.artist.toUpperCase()}</p><h1>${isVariation?title(selected):'Original'}</h1>${isVariation?`<span class="oct-tag">${presets[v.preset].label}</span>`:''}</div>${badge()}</div><div class="oct-studio">${isVariation?artwork(selected,'oct-studio-art'):''}<a class="oct-source" href="#record/${source.record}">${artwork(selected,'oct-source-art')}<span><strong>${title(selected)}</strong><small>${source.album} · ${source.genre}</small></span><span aria-hidden="true">↗</span></a>${wave()}<div class="actions">${btn('play',playIcon+' Play',selected,'primary')}${btn('lineage','Genealogy',selected)}${v?.creator==='you'?btn('share',v.published?'Shared to your feed':'Share to feed',selected):''}</div>${composer()}<details class="oct-permissions"><summary>About these versions</summary><p>Sound changes run live in your browser: speed, pitch, tone, distortion and echo. Save your settings as a new branch in the song’s genealogy. No music model or instrument separation runs here.</p><p>${source.title} is by Kevin MacLeod, used under CC BY 4.0. Artist and creator profiles are fictional. An eventual artist model requires the source artist’s permissions.</p></details></div>${footnote()}`;
   }
   function feed(creator) {
     const person=creators.find(c=>c.id===creator);
@@ -178,7 +199,7 @@ const PortoOctober = (() => {
     const posts=[...state.variations].reverse().concat(mixed).filter(v=>v.published && (!creator||v.creator===creator) && (creator||visibleSources.some(s=>s.id===v.source)) && (creator||feedFilter!=='following'||state.follows.includes(v.creator)));
     const leading=visibleSources.map((s,i)=>i===0?originalId(s.id):seeds.filter(v=>v.source===s.id)[i%3].id);
     const rotation=[...new Set([...leading,...visibleSources.map(s=>originalId(s.id)),...all().filter(v=>v.published&&visibleSources.some(s=>s.id===v.source)).map(v=>v.id)])];
-    return `<div class="oct-section-heading oct-feed-heading"><div><p class="oct-kicker">MADE TO BE LISTENED TO</p><h1>${creator==='you'?'Your space.':person?person.name:'Your feed.'}</h1><p class="oct-subtitle">${creator?'The music you make your own.':'New sounds. Familiar faces. Unexpected versions.'}</p></div>${person?followButton(person.id):badge()}</div>${!creator?`
+    return `${creator?`<div class="oct-section-heading oct-feed-heading"><div><p class="oct-kicker">MADE TO BE LISTENED TO</p><h1>${creator==='you'?'Your space.':person?person.name:'Your feed.'}</h1><p class="oct-subtitle">${creator?'The music you make your own.':'New sounds. Familiar faces. Unexpected versions.'}</p></div>${person?followButton(person.id):badge()}</div>`:'<h1 class="visually-hidden">Music</h1>'}${!creator?`
       <div class="oct-genre-filters" role="group" aria-label="Filter music by genre">${['all',...new Set(sources.map(s=>s.genre))].map(g=>`<button class="oct-chip ${genreFilter===g?'active':''}" data-oct="genre" data-id="${g}" aria-pressed="${genreFilter===g}">${g==='all'?'All sounds':g}</button>`).join('')}</div>
       <section class="oct-feed-feature"><div class="oct-section-heading"><h2>In your rotation</h2><a href="#search">Find a track ↗</a></div><div class="oct-track-strip" role="region" aria-label="Original tracks and listener versions" tabindex="0">${rotation.map(trackCard).join('')}</div></section>
       <section class="oct-artist-section"><div class="oct-section-heading"><h2>Meet the artists</h2><a href="#artists">All artists ↗</a></div><div class="oct-artist-strip">${allArtists().sort((a,b)=>Number(sources.some(s=>s.artist===b.name))-Number(sources.some(s=>s.artist===a.name))).map(a=>`<a href="#artist/${a.id}"><img loading="lazy" src="${a.art}" alt=""><span><strong>${a.name}</strong><small>${a.genre}</small></span></a>`).join('')}</div></section>
@@ -198,22 +219,39 @@ const PortoOctober = (() => {
   function ledger() {
     return `<div class="oct-section-heading"><div><p class="oct-kicker">PORTO LEDGER</p><h1>Every royalty connected.</h1><p class="oct-subtitle">Stream. Share. Get paid.</p></div>${badge()}</div><div class="oct-ledger-summary"><article><span>Illustrative listening revenue</span><strong>£9.00</strong></article><article><span>Rights-holder pool</span><strong>£6.90</strong></article><article><span>Daily USDC payouts on Aptos</span><strong class="oct-target">Product target</strong></article></div><div class="oct-ledger-table"><table><caption>Example entries for Kiki Static’s Reformat. These are not your listening-budget transactions.</caption><thead><tr><th scope="col">Track / source</th><th scope="col">Revenue</th><th scope="col">Rights pool</th><th scope="col">Status</th><th scope="col">Record</th></tr></thead><tbody>${ledgerRows.map(r=>`<tr><th scope="row">${r.label}<small>${r.type}</small></th><td>${money(r.revenue)}</td><td>${money(r.pool)}<small>${r.rate}% allocation</small></td><td><span class="oct-tag">${r.status}</span></td><td>${btn('payout','Details',r.id,'text-button')}</td></tr>`).join('')}</tbody></table></div><div class="oct-ledger-explainer"><div><span class="oct-kicker">ACCOUNTABLE. TRACKABLE. VERIFIABLE.</span><h2>Proof behind<br>every payment.</h2></div><p>The proposed payout record connects an amount, recipient, rights version and allocation to a transaction and confirmation. Porto submits accepted usage. Private listening data stays off chain.</p></div><p class="oct-note">All entries and statuses above are illustrative, with no real transaction or wallet. GBP allocation examples are not USDC transfers or exchange-rate quotes. Daily USDC payouts are a product target; Mainnet release remains gated.</p>`;
   }
-  function lineage(id) {
-    const chain=[], seen=new Set();let v=find(id);
-    while(v&&!seen.has(v.id)){seen.add(v.id);chain.unshift(v);v=find(v.parent);}
-    modal(`<p class="oct-kicker">TRACK LINEAGE</p><h2>Always linked to the original.</h2><ol class="oct-lineage"><li><strong>${sourceFor(id).title}</strong><span>Kevin MacLeod · Original · CC BY 4.0</span></li>${chain.map(v=>`<li><strong>${title(v.id)}</strong><span>${presets[v.preset].label}</span><span>Creator: ${v.creator==='you'?'You':'@'+creators.find(c=>c.id===v.creator).handle}</span></li>`).join('')}</ol><p>Original rights stay with the source rights holders. Artist permissions apply to every branch. Creator credit alone does not confer a royalty share.</p><p class="oct-note">Fictional lineage, saved only in this browser.</p>`);
+  function genealogy(id) {
+    selected=id;const source=sourceFor(id),root=originalId(source.id),versions=all().filter(v=>v.source===source.id),values=editFor(id);
+    const ancestors=new Set([id]);let parent=find(id);while(parent){ancestors.add(parent.parent);parent=find(parent.parent);}
+    const node=(nodeId)=>{
+      const v=find(nodeId),children=versions.filter(v=>v.parent===nodeId);
+      return `<li class="${ancestors.has(nodeId)?'on-path':''}"><article class="oct-gene-node ${nodeId===id?'selected':''}" data-track="${nodeId}"><a href="${routeFor(nodeId)}" aria-label="Explore ${title(nodeId)} genealogy">${artwork(nodeId,'oct-gene-art')}</a><a class="oct-gene-name" href="${routeFor(nodeId)}" ${nodeId===id?'aria-current="page"':''}><small>${v?presets[v.preset].label:'Original'}${v&&!v.published?' · Your draft':''}</small><strong>${title(nodeId)}</strong><span>${handle(nodeId)}</span>${countLabel(nodeId)}</a><button class="oct-round" data-oct="play" data-id="${nodeId}" aria-label="Play ${title(nodeId)}">${playIcon}</button></article>${children.length?`<ul>${children.map(v=>node(v.id)).join('')}</ul>`:''}</li>`;
+    };
+    return `<a class="back" href="#feed">← Back to music</a><div class="oct-dna-heading"><div><p class="oct-kicker">TRACK DNA / ${source.artist}</p><h1>${title(id)}</h1><p>${find(id)?presets[find(id).preset].label:'Original'} · ${handle(id)}</p></div><div class="oct-dna-total">${countLabel(id)}<small>Demo total · <span id="oct-local-plays">${state.plays[id]||0} in this browser</span></small></div></div>
+      <div class="oct-dna-intro">${artwork(id,'oct-dna-cover')}<div>${wave(false,id)}<div class="actions">${btn('play',playIcon+' Play',id,'primary')}${btn('refine','Use voice or text',id)}${find(id)?.creator==='you'?btn('share',find(id).published?'Shared to feed':'Share to feed',id):''}</div><p class="oct-note">${source.title} · ${source.artist} · ${source.genre}<br>Audio: Kevin MacLeod · CC BY 4.0</p></div></div>
+      <div class="oct-dna-workspace"><section class="oct-genealogy" aria-label="Complete song genealogy"><div class="oct-section-heading"><div><p class="oct-kicker">ONE ORIGINAL. EVERY BRANCH.</p><h2>Genealogy</h2></div><span>${versions.length} versions + original</span></div><p class="oct-note">Follow the lines from the original to every version. Highlighted branches lead to the selected track. Play totals include illustrative demo counts; new local plays count after 30 seconds (or half a shorter track). These are not royalty or verified stream records.</p><ul class="oct-gene-tree">${node(root)}</ul></section>${values?`<section class="oct-warp"><div class="oct-section-heading"><div><p class="oct-kicker">SHAPE THE SOUND</p><h2>Make a new branch.</h2></div><button data-oct="compare" aria-pressed="${compare}" class="secondary">${compare?'Hear your changes':'Compare original'}</button></div><div class="oct-warp-controls">${[['speed','Speed',.65,1.4,.01],['pitch','Pitch',-12,12,1],['tone','Tone',300,20000,100],['grit','Distortion',0,.8,.01],['echo','Echo',0,.65,.01]].map(([key,label,min,max,step])=>`<label for="warp-${key}">${label}<output id="warp-value-${key}">${formatSetting(key,values[key])}</output><input id="warp-${key}" data-warp="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${values[key]}"></label>`).join('')}</div><div class="actions">${btn('audition','Preview changes',id,'primary')}${btn('save-warp','Save as new version',id)}${btn('reset-warp','Reset controls',id,'text-button')}</div><p id="oct-warp-status" class="oct-status" role="status">Changes are a preview until you save a new version.</p></section>`:''}</div>${footnote()}`;
+  }
+  function lineage(id){location.hash=routeFor(id).slice(1);render();}
+  function formatSetting(key,value){return key==='speed'?value.toFixed(2)+'×':key==='pitch'?(value>0?'+':'')+value+' st':key==='tone'?(value/1000).toFixed(1)+' kHz':Math.round(value*100)+'%';}
+  function previewSettings(){
+    if(typeof PortoWarp==='undefined')return;
+    if(current.concept&&current.variationId===editId)PortoWarp.apply(editSettings,true);
+  }
+  function saveWarp(){
+    if(state.variations.length>=30){toast('Your demo has 30 versions. Reset the walkthrough to make room.');return;}
+    const v={id:'you-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),source:sourceFor(selected).id,number:Math.max(1,...all().filter(v=>v.source===sourceFor(selected).id).map(v=>v.number))+1,preset:find(selected)?.preset||'dreamy',parent:selected,creator:'you',published:false,settings:PortoWarp.sanitize(editSettings)};
+    state.variations.push(v);persist();if(current.concept&&current.variationId===selected&&playing){current=demoRecord(v.id);updatePlayer();}editId='';location.hash='variation/'+v.id;render();
   }
   function share(id) {
     const v=state.variations.find(v=>v.id===id);if(!v)return;
     if(v.published){toast('This version is already on your local feed.');return;}
-    modal(`<p class="oct-kicker">SHARE YOUR VERSION</p><h2>${title(id)}</h2>${artwork(id,'oct-share-art')}<p><span class="oct-tag">${presets[v.preset].label}</span></p><p>Created by you, from ${sourceFor(id).title} by Kevin MacLeod, shown in the fictional ${sourceFor(id).artist} catalogue. Source credit and lineage stay attached.</p><div class="oct-share-permission"><strong>Prepared audio · CC BY 4.0</strong><p>This edit retains Kevin MacLeod’s source attribution. Reuse follows the recording’s licence; fictional profile artwork has separate terms. <a href="credits.html#feed-versions">Read the credits</a>.</p></div><p>This publishes to your browser’s demo feed only. Nothing is sent to other people.</p>${btn('publish','Share to my demo feed',id,'primary coral')}`);
+    modal(`<p class="oct-kicker">SHARE YOUR VERSION</p><h2>${title(id)}</h2>${artwork(id,'oct-share-art')}<p><span class="oct-tag">${presets[v.preset].label}</span></p><p>Created by you, from ${sourceFor(id).title} by Kevin MacLeod, shown in the fictional ${sourceFor(id).artist} catalogue. Source credit and lineage stay attached.</p><div class="oct-share-permission"><strong>Browser audio effects · CC BY 4.0</strong><p>This edit retains Kevin MacLeod’s source attribution. Reuse follows the recording’s licence; fictional profile artwork has separate terms. <a href="credits.html#feed-versions">Read the credits</a>.</p></div><p>This publishes to your browser’s demo feed only. Nothing is sent to other people.</p>${btn('publish','Share to my demo feed',id,'primary coral')}`);
   }
   function payout(id) {
     const r=ledgerRows.find(r=>r.id===id);if(!r)return;
     modal(`<p class="oct-kicker">ILLUSTRATIVE PAYOUT RECORD</p><h2>${r.label}</h2><dl class="oct-payout"><dt>What</dt><dd>${money(r.pool)} rights-holder obligation. USDC payment amount not set in this demo.</dd><dt>Who</dt><dd>Kiki Static source rights holders. Recipient wallet: not connected. Example rights version: v1.</dd><dt>How</dt><dd>${money(r.revenue)} × ${r.rate}% = ${money(r.pool)}. Individual recipients follow agreed splits.</dd><dt>When</dt><dd>Example status: ${r.status}. No actual payment timestamp.</dd><dt>Transaction</dt><dd>No transaction submitted. No hash or on-chain proof.</dd></dl><p>Daily USDC settlement on Aptos is the proposed product. This record illustrates the fields, not a live payout.</p>`);
   }
   function demoRecord(id) {
-    const source=sourceFor(id),clip=sound(id);
+    const source=sourceFor(id),clip=typeof PortoWarp!=='undefined'&&PortoWarp.available()?source.audio.original:sound(id);
     return {id:source.id,concept:true,variationId:id,title:source.title,artist:source.artist,year:'2026',art:source.art,tracks:[[title(id)],[]],duration:[[clip.duration],[]],audioFiles:[[`assets/${clip.file}`]],audioExt:'mp3'};
   }
   function canPlay(r) {
@@ -223,7 +261,7 @@ const PortoOctober = (() => {
   }
   function play(id) {
     if(!valid(id))return;
-    voice?.cancel();const r=demoRecord(id);if(!canPlay(r))return;
+    voice?.cancel();if(selected!==id&&typeof PortoWarp!=='undefined'){compare=false;PortoWarp.bypass(false);}const r=demoRecord(id);if(!canPlay(r))return;
     selected=id;if(current.concept&&current.variationId===id){toggle();return;}
     pause();current=r;side=0;track=0;source();resume();selected=id;
   }
@@ -233,14 +271,14 @@ const PortoOctober = (() => {
     const directions=/(?:make (?:it|this) (?:a night drive|dreamy)|slow (?:it|this) down|night drive|slow drift|slower|dreamy|slow)/g;
     const hasDirection=directions.test(s);directions.lastIndex=0;
     const remainder=s.replace(directions,'').replace(/\band\b/g,'').trim();
-    if(!hasDirection||remainder)return {error:'Choose a prepared dreamy, night drive, slower or dreamy + slow version. Other transformations are not connected yet.'};
+    if(!hasDirection||remainder)return {error:'Try dreamy, night drive, slower or dreamy + slow, or use the sound controls on the track page. Instrument changes are not connected yet.'};
     if(state.variations.length>=30)return {error:'Your demo has 30 saved versions. Open About this demo to reset the walkthrough.'};
     const preset=(/dream/.test(s)&&/slow/.test(s))?'dreamslow':/night/.test(s)?'night':/slow/.test(s)?'slow':'dreamy';
-    const v={id:'you-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),source:sourceFor(selected).id,number:Math.max(1,...all().filter(v=>v.source===sourceFor(selected).id).map(v=>v.number))+1,preset,parent:selected,creator:'you',published:false};
+    const v={id:'you-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),source:sourceFor(selected).id,number:Math.max(1,...all().filter(v=>v.source===sourceFor(selected).id).map(v=>v.number))+1,preset,settings:typeof PortoWarp!=='undefined'?PortoWarp.sanitize({...settingsFor(selected),...PortoWarp.presets[preset]}):undefined,parent:selected,creator:'you',published:false};
     state.variations.push(v);persist();selected=v.id;return {variation:v};
   }
   function about() {
-    voice?.cancel();modal(`<p class="oct-kicker">PORTO / INTERACTIVE PROTOTYPE</p><h2>Listen. Make a version. Share.</h2><p>Reformat by Kevin MacLeod is the starting track. Eight source tracks across five fictional artists each have four full-length prepared edits with echo, filtering or tempo changes. These are real playable audio files, with no AI music generation.</p><p>Talk to Porto uses browser speech recognition after you tap it. Your browser may send audio to its recognition service. Text stays editable and is never automatically submitted. Voice support depends on your browser, microphone permission and speech service availability.</p><p>Kiki Static and all creator profiles are fictional. No account service, payment or live ledger is connected. Posts, follows and budget examples stay in this browser. ${storageOK?'':'Storage is unavailable for this visit.'}</p><a href="credits.html#feed-versions">Music credits & downloads ↗</a><div class="actions">${btn('reset','Reset listening demo')}</div><p class="oct-note">Reset clears local versions, follows, saves and example budget. Your record collection, purchases and earlier Afterlight walkthrough data are preserved.</p>`);
+    voice?.cancel();modal(`<p class="oct-kicker">PORTO / INTERACTIVE PROTOTYPE</p><h2>Listen. Make a version. Share.</h2><p>Reformat by Kevin MacLeod is the starting track. Eight source tracks across five fictional artists support live speed, pitch, filter, distortion and echo changes through Tone.js. Genealogy shows every seeded and locally saved version, with a playable branch for each. Play totals combine illustrative demo counts and listens made in this browser. No AI music generation runs.</p><p>Talk to Porto uses browser speech recognition after you tap it. Your browser may send audio to its recognition service. Text stays editable and is never automatically submitted. Voice support depends on your browser, microphone permission and speech service availability.</p><p>Kiki Static and all creator profiles are fictional. No account service, payment or live ledger is connected. Posts, follows and budget examples stay in this browser. ${storageOK?'':'Storage is unavailable for this visit.'}</p><a href="credits.html#feed-versions">Music credits & downloads ↗</a><div class="actions">${btn('reset','Reset listening demo')}</div><p class="oct-note">Reset clears local versions, follows, saves and example budget. Your record collection, purchases and earlier Afterlight walkthrough data are preserved.</p>`);
   }
   function sync() {
     const library=document.querySelector('#oct-library');
@@ -261,22 +299,24 @@ const PortoOctober = (() => {
   function view(route) {
     const [name,id]=route.split('/');
     if(name==='home')return feed();
-    if(name==='original')return !id||sources.some(s=>s.id===id)?studio(originalId(id||'reformat')):'<h1>Track not found.</h1>';
+    if(name==='original')return !id||sources.some(s=>s.id===id)?genealogy(originalId(id||'reformat')):'<h1>Track not found.</h1>';
     if(name==='search')return search();
     if(name==='studio')return studio();
-    if(name==='variation')return find(id)?studio(id):'<div class="oct-empty"><h1>Version not found.</h1><p>This version may belong to another browser or have been reset.</p><a href="#feed">Explore the feed ↗</a></div>';
+    if(name==='variation')return find(id)?genealogy(id):'<div class="oct-empty"><h1>Version not found.</h1><p>This version may belong to another browser or have been reset.</p><a href="#feed">Explore the feed ↗</a></div>';
     if(name==='feed')return feed();
     if(name==='creator')return creators.some(c=>c.id===id)||id==='you'?feed(id):'<h1>Creator not found.</h1>';
     if(name==='you')return feed('you');
     if(name==='budget'||name==='support')return budget();
     if(name==='ledger')return ledger();
-    if(name==='listening'&&current.concept)return studio(current.variationId);
+    if(name==='listening'&&current.concept)return genealogy(current.variationId);
     return null;
   }
   function init() {
     voice=PortoVoice.create({beforeStart:()=>pause(),onText:text=>{prompt=text;const input=document.querySelector('#oct-prompt');if(input)input.value=text;},onState:syncVoice});
     current=demoRecord('original');updatePlayer();
     audio.addEventListener('timeupdate',syncPlayback);
+    audio.addEventListener('timeupdate',observePlay);
+    audio.addEventListener('emptied',()=>{playSession={id:current.concept?current.variationId:'',seconds:0,last:0,counted:false};});
     window.addEventListener('hashchange',()=>{if(location.hash!==voiceRoute)voice.cancel();});
     window.addEventListener('pagehide',()=>voice.cancel());
     document.addEventListener('visibilitychange',()=>{if(document.hidden)voice.cancel();});
@@ -286,16 +326,20 @@ const PortoOctober = (() => {
       if(/^play (kiki static[’']s )?(reformat|original)[.! ]*$/i.test(prompt.trim())){const target=/reformat/i.test(prompt)?'original':originalId(sourceFor(selected).id);play(target);notice='Playing '+title(target)+'.';prompt='';render();return;}
       const result=createVariation(prompt);
       if(result.error){document.querySelector('#oct-request-status').textContent=result.error;return;}
-      notice='Your prepared version is ready. Play, refine or share it.';prompt='';location.hash='variation/'+result.variation.id;render();main.focus({preventScroll:true});
+      notice='Your version is ready. Play, refine or share it.';prompt='';location.hash='variation/'+result.variation.id;render();main.focus({preventScroll:true});
     });
-    document.addEventListener('input',e=>{if(e.target.id==='oct-prompt'){voice.cancel();prompt=e.target.value;}if(e.target.id==='oct-search'){searchText=e.target.value;document.querySelector('#oct-search-results').innerHTML=searchResults();}});
+    document.addEventListener('input',e=>{if(e.target.dataset?.warp){const key=e.target.dataset.warp;editSettings=PortoWarp.sanitize({...editSettings,[key]:Number(e.target.value)});document.querySelector('#warp-value-'+key).textContent=formatSetting(key,editSettings[key]);previewSettings();document.querySelector('#oct-warp-status').textContent=compare?'Original comparison is on. Switch back to hear your changes.':'Preview changed. Save as a new version to keep it.';}if(e.target.id==='oct-prompt'){voice.cancel();prompt=e.target.value;}if(e.target.id==='oct-search'){searchText=e.target.value;document.querySelector('#oct-search-results').innerHTML=searchResults();}});
     document.addEventListener('click',e=>{
       const link=e.target.closest('a[href^="#"]');
       if(link&&document.querySelector('#dialog').contains(link))document.querySelector('#dialog').close();
       const b=e.target.closest('[data-oct]');if(!b)return;
       const {oct:a,id}=b.dataset;
       if(a!=='voice')voice?.cancel();
-      if(a==='play')play(id);
+      if(a==='play'){if(/^(#original|#variation|#listening)/.test(location.hash)&&selected!==id){location.hash=routeFor(id).slice(1);genealogy(id);render();}play(id);}
+      if(a==='audition'){if(!PortoWarp.available()){toast('Live effects could not load. Reload the page to try again.');return;}if(!current.concept||current.variationId!==id||!playing)play(id);previewSettings();}
+      if(a==='save-warp'){if(PortoWarp.available())saveWarp();else toast('Live effects could not load. Reload the page to try again.');}
+      if(a==='compare'){compare=!compare;PortoWarp.bypass(compare);b.textContent=compare?'Hear your changes':'Compare original';b.setAttribute('aria-pressed',String(compare));}
+      if(a==='reset-warp'){editId='';editFor(selected);previewSettings();render();}
       if(a==='about')about();
       if(a==='lineage')lineage(id);
       if(a==='share')share(id);
@@ -334,5 +378,5 @@ const PortoOctober = (() => {
     window.addEventListener('storage',e=>{if(e.key===key||e.key===null){state=empty();load();if(!valid(selected))selected='original';if(current.concept&&!isOriginal(current.variationId)&&(capped()||!find(current.variationId)))pause();render();}});
     sync();
   }
-  return {view,init,sync,canPlay,about,createVariation,title,artwork,stopVoice:()=>voice?.cancel()};
+  return {view,init,sync,canPlay,about,createVariation,title,artwork,saveWarp,prepareAudio:()=>typeof PortoWarp==='undefined'?null:PortoWarp.prepare(audio,current.concept&&(find(current.variationId)||(editId===current.variationId&&JSON.stringify(editSettings)!==JSON.stringify(PortoWarp.defaults)))?(editId===current.variationId?editSettings:settingsFor(current.variationId)):null),stopVoice:()=>voice?.cancel()};
 })();
