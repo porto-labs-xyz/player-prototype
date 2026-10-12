@@ -510,3 +510,13 @@ action(gesture,'play','luna-dreamy');assert.equal(ga.paused,true);
 inGesture=true;action(gesture,'play','luna-dreamy');assert.equal(ga.playCalls,3);
 inGesture=false;await new Promise(setImmediate);
 console.log('PASS: ready originals, variation switches and resume call native play inside the user gesture.');
+
+// Ordinary play/resume must never expose preparation while native play settles.
+const loaded=session({}, {october:true});const la=loaded.elements.get('#audio');
+loaded.run('PortoWarp.available=()=>true;PortoOctober.prepareAudio=()=>true');
+let finishNativePlay;
+la.play=function(){this.playCalls++;this.paused=false;return new Promise(resolve=>{finishNativePlay=resolve})};
+action(loaded,'play','original');assert.equal(loaded.run('preparingPlayback'),false);assert.equal(loaded.run('playing'),true);
+assert.notEqual(loaded.elements.get('#node-state').textContent,'PREPARING');
+action(loaded,'play','original');assert.equal(la.paused,true);finishNativePlay();await new Promise(setImmediate);assert.equal(loaded.run('playing'),false);
+console.log('PASS: loaded native play stays out of preparation and can be paused before play resolves.');

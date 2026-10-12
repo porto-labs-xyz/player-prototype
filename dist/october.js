@@ -334,8 +334,8 @@ const PortoOctober = (() => {
     modal(`<p class="oct-kicker">ILLUSTRATIVE PAYOUT RECORD</p><h2>${r.label}</h2><dl class="oct-payout"><dt>What</dt><dd>${money(r.pool)} rights-holder obligation. USDC payment amount not set in this demo.</dd><dt>Who</dt><dd>Kiki Static source rights holders. Recipient wallet: not connected. Example rights version: v1.</dd><dt>How</dt><dd>${money(r.revenue)} × ${r.rate}% = ${money(r.pool)}. Individual recipients follow agreed splits.</dd><dt>When</dt><dd>Example status: ${r.status}. No actual payment timestamp.</dd><dt>Transaction</dt><dd>No transaction submitted. No hash or on-chain proof.</dd></dl><p>Daily USDC settlement on Aptos is the proposed product. This record illustrates the fields, not a live payout.</p>`);
   }
   function demoRecord(id) {
-    const source=sourceFor(id),clip=typeof PortoWarp!=='undefined'&&PortoWarp.available()?source.audio.original:sound(id);
-    return {id:source.id,concept:true,variationId:id,title:source.title,artist:source.artist,year:'2026',art:source.art,tracks:[[title(id)],[]],duration:[[clip.duration],[]],audioFiles:[[`assets/${clip.file}`]],audioExt:'mp3'};
+    const source=sourceFor(id),ready=find(id)&&PortoWarp.prepared('assets/'+source.audio.original.file,settingsFor(id)),clip=ready?{file:ready.file.replace(/^assets\//,''),duration:source.audio.original.duration}:typeof PortoWarp!=='undefined'&&PortoWarp.available()?source.audio.original:sound(id);
+    return {id:source.id,concept:true,originalAudioSource:'assets/'+source.audio.original.file,variationId:id,title:source.title,artist:source.artist,year:'2026',art:source.art,tracks:[[title(id)],[]],duration:[[clip.duration],[]],audioFiles:[[`assets/${clip.file}`]],audioExt:'mp3'};
   }
   function canPlay(r) {
     const version=r.concept&&find(r.variationId);
@@ -371,7 +371,7 @@ const PortoOctober = (() => {
     if(state.variations.length>=30)return {error:'Your demo has 30 saved versions. Open About this demo to reset the walkthrough.'};
     const preset=request.preset||find(selected)?.preset||'dreamy';
     const v={id:'you-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),source:sourceFor(selected).id,number:Math.max(1,...all().filter(v=>v.source===sourceFor(selected).id).map(v=>v.number))+1,preset,settings:request.settings,parent:selected,creator:'you',published:false};
-    state.variations.push(v);persist();selected=v.id;return {variation:v};
+    state.variations.push(v);persist();selected=v.id;if(typeof location.href==='string')PortoWarp.warm([{source:'assets/'+sourceFor(v.id).audio.original.file,settings:settingsFor(v.id)}]);return {variation:v};
   }
   function about() {
     voice?.cancel();modal(`<p class="oct-kicker">PORTO / INTERACTIVE PROTOTYPE</p><h2>Listen. Make a version. Share.</h2><p>Reformat by Kevin MacLeod is the starting track. Eight source tracks across five fictional artists support reverse audio, chopped and repeated slices, underwater filtering, pitch, bitcrushing, distortion and echo through Tone.js. Genealogy shows every seeded and locally saved version, with a playable branch for each. Play totals combine illustrative demo counts and listens made in this browser. No AI music generation runs.</p><p>Talk to Porto uses browser speech recognition after you tap it. Your browser may send audio to its recognition service. Text stays editable and is never automatically submitted. Voice support depends on your browser, microphone permission and speech service availability.</p><p>Kiki Static and all creator profiles are fictional. No account service, payment or live ledger is connected. Posts, follows and budget examples stay in this browser. ${storageOK?'':'Storage is unavailable for this visit.'}</p><a href="credits.html#feed-versions">Music credits & downloads ↗</a><div class="actions">${btn('reset','Reset listening demo')}</div><p class="oct-note">Reset clears local versions, follows, saves and example budget. Your record collection, purchases and earlier Afterlight walkthrough data are preserved.</p>`);
@@ -410,6 +410,11 @@ const PortoOctober = (() => {
   function init() {
     voice=PortoVoice.create({onText:text=>{prompt=text;const input=document.querySelector('#oct-prompt');if(input)input.value=text;},onState:syncVoice});
     current=demoRecord('original');updatePlayer();
+    if(typeof PortoCache!=='undefined')PortoCache.start([
+      ...records.flatMap(r=>r.tracks.flatMap((tracks,s)=>tracks.map((_,i)=>r.audioFiles?.[s]?.[i]||`assets/${r.id}-${s?'b':'a'}-${i+1}.${r.audioExt||'wav'}`))),
+      ...(typeof PreparedAudio==='undefined'?[]:PreparedAudio.map(item=>item.file))
+    ]);
+    if(typeof PortoWarp!=='undefined'&&typeof location.href==='string')PortoWarp.warm(state.variations.map(v=>({source:'assets/'+sourceFor(v.id).audio.original.file,settings:settingsFor(v.id)})));
     audio.addEventListener('timeupdate',syncWaveforms);
     audio.addEventListener('timeupdate',observePlay);
     audio.addEventListener('emptied',()=>{playSession={id:current.concept?current.variationId:'',seconds:0,last:0,counted:false};});
@@ -499,5 +504,5 @@ const PortoOctober = (() => {
     window.addEventListener('storage',e=>{if(e.key===key||e.key===null){state=empty();load();if(!valid(selected))selected='original';if(current.concept&&!isOriginal(current.variationId)&&(capped()||!find(current.variationId)))pause();render();}});
     sync();
   }
-  return {view,init,sync,canPlay,about,createVariation,title,artwork,prepareAudio:(isCurrent)=>typeof PortoWarp==='undefined'?null:PortoWarp.prepare(audio,current.concept&&find(current.variationId)?settingsFor(current.variationId):null,isCurrent),stopVoice:()=>voice?.cancel()};
+  return {catalogue:()=>seeds.map(v=>({id:v.id,source:'assets/'+sourceFor(v.id).audio.original.file,settings:settingsFor(v.id)})),view,init,sync,canPlay,about,createVariation,title,artwork,prepareAudio:(isCurrent)=>typeof PortoWarp==='undefined'?null:PortoWarp.prepare(audio,current.concept&&find(current.variationId)?settingsFor(current.variationId):null,isCurrent),stopVoice:()=>voice?.cancel()};
 })();

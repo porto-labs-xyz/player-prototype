@@ -13,7 +13,8 @@ const PortoWarp = (() => {
     dreamslow:{speed:.8,pitch:3,tone:5000,grit:.08,echo:.4}
   };
   let media,renderQueue=Promise.resolve();
-  const available=()=>typeof Tone!=='undefined';
+  const available=()=>typeof Tone!=='undefined'||typeof PreparedAudio!=='undefined';
+  const prepared=(url,values)=>typeof PreparedAudio==='undefined'?null:PreparedAudio.find(item=>url.endsWith(item.source)&&JSON.stringify(item.settings)===JSON.stringify(values));
   function sanitize(value={}) {
     return Object.fromEntries(Object.entries(limits).map(([key,[min,max]])=>[key,Number.isFinite(value[key])?Math.min(max,Math.max(min,value[key])):defaults[key]]));
   }
@@ -98,6 +99,14 @@ const PortoWarp = (() => {
       nodes.forEach(node=>node.dispose());renderedBuffer?.dispose();decoded.dispose();offlineContext?.dispose();
     }
   }
+  async function storedRender(key){
+    if(typeof caches==='undefined')return null;
+    try{return await (await caches.open('porto-custom-audio-v1')).match(new URL('__porto-render/'+encodeURIComponent(key),location.href).href)}catch{return null}
+  }
+  async function saveRender(key,url){
+    if(typeof caches==='undefined')return;
+    try{await (await caches.open('porto-custom-audio-v1')).put(new URL('__porto-render/'+encodeURIComponent(key),location.href).href,await fetch(url))}catch{/* Playback still works without persistent storage. */}
+  }
   async function editedSource(url,values,isCurrent){
     const key=url+'|'+JSON.stringify(values);
     if(!isCurrent())return null;
@@ -105,7 +114,10 @@ const PortoWarp = (() => {
     const job=renderQueue.then(async()=>{
       if(!isCurrent())return null;
       if(rendered.has(key))return rendered.get(key);
-      const result=await renderVersion(url,values,isCurrent);
+      const stored=await storedRender(key);
+      if(!isCurrent())return null;
+      const result=stored?URL.createObjectURL(await stored.blob()):await renderVersion(url,values,isCurrent);
+      if(result&&!stored)await saveRender(key,result);
       if(!result)return null;
       rendered.set(key,result);
       while(rendered.size>2){const oldest=[...rendered.keys()].find(k=>rendered.get(k)!==media?.src&&rendered.get(k)!==result);if(!oldest)break;URL.revokeObjectURL(rendered.get(oldest));rendered.delete(oldest);}
@@ -130,8 +142,10 @@ const PortoWarp = (() => {
       return true;
     };
     // Ready sources stay synchronous, so play remains part of the user's tap.
-    if(element.dataset.preparedKey===key)return install(element.src);
+    if(element.dataset.preparedKey===key){element.dataset.preparingAudio='false';return true;}
     if(!settings)return install(original);
+    const ready=prepared(original,values);
+    if(ready)return install(new URL(ready.file,location.href).href);
     if(rendered.has(key))return install(rendered.get(key));
     // Authorize this same media element while still inside the explicit Play
     // gesture. Pause immediately, before any sound, while rendering completes.
@@ -140,5 +154,6 @@ const PortoWarp = (() => {
     return Promise.resolve(editedSource(original,values,isCurrent)).then(install)
       .finally(()=>{if(isCurrent())element.dataset.preparingAudio='false';});
   }
-  return {available,chopSamples,crushSamples,wavBytes,sanitize,parseRequest,defaults,presets,prepare};
+  async function warm(entries){for(const entry of entries){const values=sanitize(entry.settings),url=entry.source;if(!prepared(url,values))await editedSource(url,values,()=>true).catch(()=>{});}}
+  return {warm,prepared,renderAsset:(url,settings)=>renderVersion(url,sanitize(settings),()=>true),available,chopSamples,crushSamples,wavBytes,sanitize,parseRequest,defaults,presets,prepare};
 })();

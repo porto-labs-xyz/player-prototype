@@ -21,7 +21,8 @@ const Tone={
  ToneAudioBuffer:{fromUrl(){decodeCount++;if(hold){hold=false;return new Promise(resolve=>{release=()=>resolve(buffer())})}return Promise.resolve(buffer())}},
  OfflineContext:class {constructor(){this.first=nodes.length} async render(asynchronous){assert.equal(asynchronous,false);renderCount++;assert(nodes.slice(this.first).every(n=>n.options.context===this));return {get:()=>nodes[this.first].options.url,dispose(){}}} dispose(){contextDisposals++}}
 };
-const context=vm.createContext({console,Blob,URL:{createObjectURL(blob){created.push(blob);return 'blob:render-'+created.length},revokeObjectURL(url){revoked.push(url)}},Tone,audio});
+class TestURL extends URL {static createObjectURL(blob){created.push(blob);return 'blob:render-'+created.length}static revokeObjectURL(url){revoked.push(url)}}
+const context=vm.createContext({console,Blob,URL:TestURL,location:{href:'https://porto.test/'},Tone,audio});
 vm.runInContext(code,context);let current=true;context.isCurrent=()=>current;
 await vm.runInContext('PortoWarp.prepare(audio,null,isCurrent)',context);
 assert.equal(decodeCount,0);assert.equal(audio.dataset.warp,'native');assert.equal(unlockCalls,0);
@@ -63,3 +64,21 @@ const ready=vm.runInContext('PortoWarp.prepare(audio,{pitch:5},isCurrent)',conte
 assert.equal(ready,true);assert.equal(audio.src,cachedSource);assert.equal(unlockCalls,cachedUnlocks);
 finish();await blocking;assert.equal(audio.src,cachedSource);
 console.log('PASS: gesture priming pauses synchronously before rendering; cached switches bypass pending renders.');
+
+context.PreparedAudio=[{source:'assets/source.mp3',file:'assets/versions/prepared.mp3',settings:JSON.parse(vm.runInContext('JSON.stringify(PortoWarp.sanitize({pitch:2}))',context))}];
+audio.dataset.originalSource='assets/source.mp3';audio.dataset.preparedKey='';audio.src='https://porto.test/assets/source.mp3';
+const beforePrepared={renders:renderCount,unlocks:unlockCalls};
+assert.equal(vm.runInContext('PortoWarp.prepare(audio,{pitch:2},isCurrent)',context),true);
+assert.equal(audio.src,'https://porto.test/assets/versions/prepared.mp3');assert.equal(renderCount,beforePrepared.renders);assert.equal(unlockCalls,beforePrepared.unlocks);
+audio.currentTime=67;audio.load=()=>{throw Error('Resume reloaded audio')};
+assert.equal(vm.runInContext('PortoWarp.prepare(audio,{pitch:2},isCurrent)',context),true);assert.equal(audio.currentTime,67);
+console.log('PASS: prepared catalogue starts without rendering or priming; resume never reloads the source.');
+
+// A persisted custom render can be restored after its object URL was evicted.
+const storedBytes=created[0];let restored=0;
+context.caches={open:async()=>({match:async()=>({blob:async()=>{restored++;return storedBytes}})})};
+audio.load=function(){this.currentTime=0};audio.dataset.originalSource='assets/custom-source.mp3';audio.dataset.preparedKey='';audio.src='assets/custom-source.mp3';
+const beforeRestore=renderCount;
+await vm.runInContext('PortoWarp.prepare(audio,{pitch:8},isCurrent)',context);
+assert.equal(restored,1);assert.equal(renderCount,beforeRestore);
+console.log('PASS: custom versions restore from persistent cache without rerendering.');
