@@ -173,3 +173,7 @@ The prototype uses Porto · Co-create for the document, Open Graph and Twitter t
 ## Immediate track details and creator badges, 12 October 2026
 
 Tapping a track or graph node opens the detailed track page directly, superseding the extra graph-node modal. Place the selected cover, title, creator profile picture, mood, parent, play total, clearly marked demo royalty, playback and co-create controls above the lineage graph. Move the large family royalty summary below lineage. Add a circular creator-photo badge to every artwork node, using native SVG images with explicit clipping so the profile photo is independent of the HTML artwork effects. Original nodes use the source artist artwork; local drafts use the neutral @you avatar. Preserve voice/text-only editing and no navigation autoplay.
+
+## Accessible playback transport
+
+The fixed player uses a 44px-high seek target with a thin violet progress line and visible thumb. Include play/pause and a square stop icon with explicit accessible labels at every breakpoint. Seeking uses the current track, independent of ownership. Place the nonmodal voice panel above the transport so it can remain in use during capture. Voice/text-only transformation excludes playback-position controls.

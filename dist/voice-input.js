@@ -46,7 +46,7 @@ const PortoVoice = (() => {
           update('error',errors[e.error]||'Voice input could not start. Try again or type your request.');
         };
         r.onend=()=>{if(recognition!==r)return;recognition=null;clear();update('idle',received?'Transcript ready. Edit it, then choose your version.':'No speech was heard. Tap to try again, or type your request.');};
-        beforeStart();update('starting','Starting microphone. Allow access if your browser asks.');
+        beforeStart?.();update('starting','Starting microphone. Allow access if your browser asks.');
         timer=setTimeout(()=>{if(recognition===r){cancel();update('error','The speech service did not start. Try Chrome or Safari, or type your request.');}},12000);
         r.start();
       } catch {cancel();update('error','Voice input could not start. Check microphone permissions or type your request.');}

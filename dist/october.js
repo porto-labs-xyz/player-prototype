@@ -161,7 +161,7 @@ const PortoOctober = (() => {
     if(!sheet.open){
       if(notice.startsWith('Your version is ready'))notice='';
       sheet.innerHTML=`<div class="oct-sheet-heading"><div><strong class="oct-co-create" id="oct-co-create">Co-create with ${esc(sourceFor(selected).artist)}</strong><span id="oct-source-label">${esc(title(selected)+(isOriginal(selected)?' · Original':''))}</span></div><button type="button" class="icon-button" data-oct="close-sheet" aria-label="Close voice input">×</button></div>${composer()}`;
-      sheet.showModal();document.querySelectorAll('[aria-controls="oct-voice-sheet"]').forEach(b=>b.setAttribute('aria-expanded','true'));
+      sheet.show();document.querySelectorAll('[aria-controls="oct-voice-sheet"]').forEach(b=>b.setAttribute('aria-expanded','true'));
     }
     if(record){voiceRoute=location.hash;voice.start(prompt);syncVoice();sheet.querySelector('[data-oct="voice"]')?.focus();}
     else document.querySelector('#oct-prompt')?.focus();
@@ -332,13 +332,14 @@ const PortoOctober = (() => {
     return null;
   }
   function init() {
-    voice=PortoVoice.create({beforeStart:()=>pause(),onText:text=>{prompt=text;const input=document.querySelector('#oct-prompt');if(input)input.value=text;},onState:syncVoice});
+    voice=PortoVoice.create({onText:text=>{prompt=text;const input=document.querySelector('#oct-prompt');if(input)input.value=text;},onState:syncVoice});
     current=demoRecord('original');updatePlayer();
     audio.addEventListener('timeupdate',syncPlayback);
     audio.addEventListener('timeupdate',observePlay);
     audio.addEventListener('emptied',()=>{playSession={id:current.concept?current.variationId:'',seconds:0,last:0,counted:false};});
     window.addEventListener('hashchange',()=>{if(location.hash!==voiceRoute)closeSheet();});
     const sheet=document.querySelector('#oct-voice-sheet');
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sheet.open){e.preventDefault();closeSheet();}});
     sheet.addEventListener('close',()=>{voice.cancel();document.querySelectorAll('[aria-controls="oct-voice-sheet"]').forEach(b=>b.setAttribute('aria-expanded','false'));sheetTrigger?.focus();});
     sheet.addEventListener('click',e=>{if(e.target===sheet){const r=sheet.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeSheet();}});
     window.addEventListener('pagehide',()=>voice.cancel());

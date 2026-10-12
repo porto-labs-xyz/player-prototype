@@ -14,8 +14,8 @@ const octoberSource=fs.readFileSync(path.join(root,'dist/october.js'),'utf8');
 const playerSource=fs.readFileSync(path.join(root,'dist/app.js'),'utf8');
 function session(initial={},options={}){
  const elements=new Map(),storage=new Map(Object.entries(initial)),windowEvents={},documentEvents={};
- const element=id=>{if(!elements.has(id))elements.set(id,{id,innerHTML:'',textContent:'',value:'',src:'',autoplay:false,playCalls:0,style:{},dataset:{},currentTime:0,ended:false,events:{},classList:{toggle(){},add(){},remove(){}},setAttribute(k,v){this[k]=v},getAttribute(k){return this[k]},removeAttribute(k){if(k!=='autoplay')delete this[k]},addEventListener(k,v){const old=this.events[k];this.events[k]=old?(...args)=>{old(...args);v(...args)}:v},load(){this.currentTime=0;this.events.emptied?.()},pause(){this.paused=true;this.events.pause?.()},async play(){this.paused=false;this.playCalls++;this.events.play?.();this.events.playing?.()},focus(){},querySelector:selector=>element(selector),showModal(){this.open=true},close(){this.open=false;this.events.close?.()}});return elements.get(id)};
- const context=vm.createContext({console,URLSearchParams,setTimeout:()=>0,clearTimeout(){},location:{hash:'',search:''},window:{addEventListener:(name,fn)=>windowEvents[name]=fn,scrollTo(){}},document:{querySelector:element,querySelectorAll:()=>[],addEventListener(name,fn){(documentEvents[name]??=[]).push(fn)},body:element('body')},localStorage:{getItem:k=>{if(options.blockRead)throw Error("storage blocked");return storage.get(k)??null},setItem:(k,v)=>{if(options.blockWrite)throw Error("storage full");storage.set(k,v)}}});
+ const element=id=>{if(!elements.has(id))elements.set(id,{id,innerHTML:'',textContent:'',value:'',src:'',autoplay:false,playCalls:0,style:{},dataset:{},currentTime:0,ended:false,events:{},classList:{toggle(){},add(){},remove(){}},setAttribute(k,v){this[k]=v},getAttribute(k){return this[k]},removeAttribute(k){if(k!=='autoplay')delete this[k]},addEventListener(k,v){const old=this.events[k];this.events[k]=old?(...args)=>{old(...args);v(...args)}:v},load(){this.currentTime=0;this.events.emptied?.()},pause(){this.paused=true;this.events.pause?.()},async play(){this.paused=false;this.playCalls++;this.events.play?.();this.events.playing?.()},focus(){},querySelector:selector=>element(selector),show(){this.open=true},showModal(){this.open=true},close(){this.open=false;this.events.close?.()}});return elements.get(id)};
+ const context=vm.createContext({console,URLSearchParams,setTimeout:()=>0,clearTimeout(){},location:{hash:'',search:''},window:{SpeechRecognition:options.Recognition,addEventListener:(name,fn)=>windowEvents[name]=fn,scrollTo(){}},document:{querySelector:element,querySelectorAll:()=>[],addEventListener(name,fn){(documentEvents[name]??=[]).push(fn)},body:element('body')},localStorage:{getItem:k=>{if(options.blockRead)throw Error("storage blocked");return storage.get(k)??null},setItem:(k,v)=>{if(options.blockWrite)throw Error("storage full");storage.set(k,v)}}});
  vm.runInContext(editionSource+'\n'+profileSource+'\n'+(options.october?audioSource+'\n'+feedAudioSource+'\n'+voiceSource+'\n'+warpSource+'\n'+graphSource+'\n'+octoberSource+'\n':'')+playerSource,context);
  return {context,elements,storage,windowEvents,documentEvents,run:code=>vm.runInContext(code,context)};
 }
@@ -379,3 +379,35 @@ action(named,'play',untitled.id);action(named,'rename',untitled.id);nameSubmit('
 assert.equal(named.elements.get('#mini-title').textContent,'@you / Velvet Morning');
 assert.equal(JSON.parse(named.storage.get('porto-reformat-v2')).variations.length,1);
 console.log('PASS: title entry, rename, reload, player sync, HTML escaping and unchanged lineage.');
+
+// Scrubbing changes position without starting playback, altering the queue or buying a copy.
+const transport=session({}, {october:true});
+const ta=transport.elements.get('#audio');
+transport.run('seekTo(35)');
+assert.equal(ta.playCalls,0);assert.equal(transport.run('pendingSeek'),35);
+ta.duration=219;ta.readyState=1;ta.events.loadedmetadata();
+assert.equal(ta.currentTime,35);
+await transport.run('resume()');
+transport.run('seekTo(90)');assert.equal(ta.currentTime,90);assert.equal(ta.paused,false);
+transport.run('pause();seekTo(12)');assert.equal(ta.currentTime,12);assert.equal(ta.paused,true);
+transport.run('seekTo(-10)');assert.equal(ta.currentTime,0);
+transport.run('seekTo(9999)');assert.equal(ta.currentTime,219);
+transport.run('seekTo(NaN)');assert.equal(ta.currentTime,219);
+transport.run("queueTrack('after-rain',0,1)");
+await transport.run('resume()');transport.elements.get('#stop').events.click();
+assert.equal(ta.currentTime,0);assert.equal(ta.paused,true);assert.equal(transport.run('queue.length'),1);
+assert.equal(transport.run('owned.length'),0);
+transport.run('seekTo(42)');await transport.run('toggle()');assert.equal(ta.currentTime,42);assert.equal(ta.paused,false);
+transport.run('pause();source();seekTo(33);stopPlayback()');ta.events.loadedmetadata();assert.equal(ta.currentTime,0);
+// Actual speech-controller callbacks must leave audio running, including interim text and close.
+let recognition;
+class SpeechMock { constructor(){recognition=this;this.aborted=false} start(){this.onstart()} abort(){this.aborted=true} stop(){this.onend()} }
+const talking=session({}, {october:true,Recognition:SpeechMock});
+await talking.run('source();resume()');const talkAudio=talking.elements.get('#audio');talkAudio.currentTime=24;
+action(talking,'voice');assert.equal(talkAudio.paused,false);assert.equal(talkAudio.currentTime,24);
+recognition.onresult({results:[[{transcript:'make it dreamy'}]]});assert.equal(talkAudio.paused,false);
+assert.equal(talking.elements.get('#oct-prompt').value,'make it dreamy');
+talking.run('pause()');await talking.run('resume()');
+assert.equal(recognition.aborted,false);assert.equal(talkAudio.currentTime,24);
+action(talking,'close-sheet');assert.equal(talkAudio.paused,false);assert.equal(talkAudio.currentTime,24);
+console.log('PASS: queued metadata seeks, playing/paused scrubs, stop/reset, queue preservation and voice capture without interrupting playback.');
