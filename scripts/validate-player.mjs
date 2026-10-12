@@ -13,7 +13,7 @@ const octoberSource=fs.readFileSync(path.join(root,'dist/october.js'),'utf8');
 const playerSource=fs.readFileSync(path.join(root,'dist/app.js'),'utf8');
 function session(initial={},options={}){
  const elements=new Map(),storage=new Map(Object.entries(initial)),windowEvents={},documentEvents={};
- const element=id=>{if(!elements.has(id))elements.set(id,{id,innerHTML:'',textContent:'',value:'',src:'',autoplay:false,playCalls:0,style:{},dataset:{},currentTime:0,ended:false,events:{},classList:{toggle(){},add(){},remove(){}},setAttribute(k,v){this[k]=v},getAttribute(k){return this[k]},removeAttribute(k){if(k!=='autoplay')delete this[k]},addEventListener(k,v){const old=this.events[k];this.events[k]=old?(...args)=>{old(...args);v(...args)}:v},load(){this.currentTime=0;this.events.emptied?.()},pause(){this.paused=true;this.events.pause?.()},async play(){this.paused=false;this.playCalls++;this.events.play?.();this.events.playing?.()},focus(){},showModal(){this.open=true},close(){this.open=false}});return elements.get(id)};
+ const element=id=>{if(!elements.has(id))elements.set(id,{id,innerHTML:'',textContent:'',value:'',src:'',autoplay:false,playCalls:0,style:{},dataset:{},currentTime:0,ended:false,events:{},classList:{toggle(){},add(){},remove(){}},setAttribute(k,v){this[k]=v},getAttribute(k){return this[k]},removeAttribute(k){if(k!=='autoplay')delete this[k]},addEventListener(k,v){const old=this.events[k];this.events[k]=old?(...args)=>{old(...args);v(...args)}:v},load(){this.currentTime=0;this.events.emptied?.()},pause(){this.paused=true;this.events.pause?.()},async play(){this.paused=false;this.playCalls++;this.events.play?.();this.events.playing?.()},focus(){},querySelector:selector=>element(selector),showModal(){this.open=true},close(){this.open=false;this.events.close?.()}});return elements.get(id)};
  const context=vm.createContext({console,URLSearchParams,setTimeout:()=>0,clearTimeout(){},location:{hash:'',search:''},window:{addEventListener:(name,fn)=>windowEvents[name]=fn,scrollTo(){}},document:{querySelector:element,querySelectorAll:()=>[],addEventListener(name,fn){(documentEvents[name]??=[]).push(fn)},body:element('body')},localStorage:{getItem:k=>{if(options.blockRead)throw Error("storage blocked");return storage.get(k)??null},setItem:(k,v)=>{if(options.blockWrite)throw Error("storage full");storage.set(k,v)}}});
  vm.runInContext(editionSource+'\n'+profileSource+'\n'+(options.october?audioSource+'\n'+feedAudioSource+'\n'+voiceSource+'\n'+warpSource+'\n'+octoberSource+'\n':'')+playerSource,context);
  return {context,elements,storage,windowEvents,documentEvents,run:code=>vm.runInContext(code,context)};
@@ -135,8 +135,8 @@ console.log('PASS: 14 artist profiles, unique slugs, multi-release grouping, emp
 
 // October flows share the actual player but keep synthetic previews and money separate.
 const october=session({}, {october:true});
-const action=(s,oct,id='')=>s.documentEvents.click.forEach(fn=>fn({target:{closest:selector=>selector==='[data-oct]'?{dataset:{oct,id}}:null}}));
-const submit=(s,text)=>{s.run("document.querySelector('#oct-prompt')").value=text;s.documentEvents.submit.forEach(fn=>fn({target:{id:'oct-prompt-form'},preventDefault(){}}))};
+const action=(s,oct,id='')=>s.documentEvents.click.forEach(fn=>fn({target:{closest:selector=>selector==='[data-oct]'?{dataset:{oct,id},focus(){}}:null}}));
+const submit=(s,text)=>{action(s,'prompt-open');s.run("document.querySelector('#oct-prompt')").value=text;s.documentEvents.submit.forEach(fn=>fn({target:{id:'oct-prompt-form'},preventDefault(){}}))};
 assert.equal(october.run('current.variationId'),'original');
 assert.equal(october.elements.get('#audio').src,'');
 assert.equal(october.elements.get('#audio').playCalls,0);
@@ -281,14 +281,14 @@ assert.equal((family.match(/class="oct-gene-node /g)||[]).length,5);
 assert(!family.includes('Dream Culture/'));
 assert.doesNotMatch(dna.run("PortoOctober.view('home')"),/Your feed\./);
 dna.run("PortoOctober.view('variation/luna-dreamy')");
-for(const fn of dna.documentEvents.input)fn({target:{dataset:{warp:'pitch'},value:'7'}});
-dna.run('PortoOctober.saveWarp()');
+submit(dna,'Pitch up 5 semitones.');
 let dnaState=JSON.parse(dna.storage.get('porto-reformat-v2'));
 const custom=dnaState.variations[0];
 assert.equal(custom.parent,'luna-dreamy');assert.equal(custom.settings.pitch,7);assert.equal(custom.published,false);
 assert.equal(custom.number,6);
 const dnaReload=session(Object.fromEntries(dna.storage),{october:true});
-assert.match(dnaReload.run(`PortoOctober.view('variation/${custom.id}')`),/value="7"/);
+assert.equal(JSON.parse(dnaReload.storage.get('porto-reformat-v2')).variations[0].settings.pitch,7);
+assert.doesNotMatch(dnaReload.run(`PortoOctober.view('variation/${custom.id}')`),/type="range"|data-warp/);
 assert.equal((dnaReload.run("PortoOctober.view('original')").match(/class="oct-gene-node /g)||[]).length,6);
 assert.equal(dnaReload.run("PortoWarp.sanitize({speed:99,pitch:-200,echo:Infinity}).speed"),1.4);
 assert.equal(dnaReload.run("PortoWarp.sanitize({pitch:-200}).pitch"),-12);
@@ -306,3 +306,17 @@ media.currentTime=180;media.events.timeupdate();
 assert.equal(JSON.parse(dnaReload.storage.get('porto-reformat-v2')).plays['luna-dreamy'],1);
 assert.match(session(Object.fromEntries(dnaReload.storage),{october:true}).run("PortoOctober.view('variation/luna-dreamy')"),/1 in this browser/);
 console.log('PASS: complete genealogy, source isolation, custom effects saved as child versions, effect bounds, sustained-play counting, pause/seek protection and count persistence.');
+
+const sheet=session({}, {october:true});
+action(sheet,'voice');
+assert.equal(sheet.elements.get('#oct-voice-sheet').open,true);
+assert.match(sheet.elements.get('#oct-voice-sheet').innerHTML,/How should it sound/);
+assert.match(sheet.elements.get('#oct-voice-status').textContent,/unavailable/);
+action(sheet,'close-sheet');assert.equal(sheet.elements.get('#oct-voice-sheet').open,false);
+action(sheet,'prompt-open');
+assert.equal(sheet.elements.get('#oct-voice-sheet').open,true);
+submit(sheet,'Make it dreamy and add more distortion');
+const prompted=JSON.parse(sheet.storage.get('porto-reformat-v2')).variations[0];
+assert.equal(prompted.settings.grit,.2);assert.equal(prompted.settings.echo,.32);
+assert.equal(sheet.elements.get('#oct-voice-sheet').open,false);
+console.log('PASS: bottom voice/text sheet opens and closes, unsupported speech feedback stays in the sheet, prompt-only effects create a child and no sound sliders are rendered.');

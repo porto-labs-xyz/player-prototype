@@ -26,3 +26,16 @@ await vm.runInContext('PortoWarp.prepare(audio,null)',ctx);
 assert.equal(sources,1);assert.equal(audio.playbackRate,1);assert.equal(audio.dataset.warp,'bypass');
 events.timeupdate();assert.equal(audio.dataset.outputLevel,'0.2');
 console.log('PASS: lazy graph creation, one media source, live settings, pitch-preserving speed, pause gate, dry comparison and clean catalogue bypass. Tone nodes mocked; browser signal output checked separately.');
+
+const request=text=>vm.runInContext(`PortoWarp.parseRequest(${JSON.stringify(text)})`,ctx);
+assert.equal(request('Pitch up 3 semitones and more echo').settings.pitch,3);
+assert.equal(request('Pitch up 3 semitones and more echo').settings.echo,.2);
+assert.equal(request('20% slower').settings.speed,.8);
+assert.equal(request('Make it brighter').settings.tone,16000);
+assert.equal(request('Remove echo').settings.echo,0);
+assert.equal(request('Less distortion').settings.grit,0);
+assert.equal(request('Pitch down 99 semitones').settings.pitch,-12);
+assert(request('Make it dreamy and remove the guitar').error);
+assert(request('Do not make it dreamy').error);
+assert(request('Make it silent').error);
+console.log('PASS: voice/text effect parsing, combined requests, bounds and unsupported-clause rejection.');

@@ -13,6 +13,26 @@ const PortoWarp = (() => {
   function sanitize(value={}) {
     return Object.fromEntries(Object.entries(limits).map(([key,[min,max]])=>[key,Number.isFinite(value[key])?Math.min(max,Math.max(min,value[key])):defaults[key]]));
   }
+  function parseRequest(text,base=defaults){
+    let rest=text.toLowerCase().trim().replace(/[.,!?;]/g,' ').replace(/\s+/g,' '),settings=sanitize(base),seen=[];
+    const consume=(pattern,apply,name)=>{rest=rest.replace(pattern,(...m)=>{apply(m);seen.push(name);return ' ';});};
+    consume(/\b(\d{1,2})\s*(?:%|percent)\s*(slower|faster)\b/g,m=>{settings.speed*=1+(m[2]==='slower'?-1:1)*Number(m[1])/100;},'speed');
+    consume(/\bpitch (up|down)(?: by)? (\d{1,2}) semitones?\b/g,m=>{settings.pitch+=(m[1]==='down'?-1:1)*Number(m[2]);},'pitch');
+    consume(/\b(?:add more echo|add echo|more echo)\b/g,()=>{settings.echo+=.2;},'echo');
+    consume(/\b(?:less echo|remove (?:the )?echo)\b/g,m=>{settings.echo=m[0].startsWith('remove')?0:settings.echo-.2;},'echo');
+    consume(/\b(?:add more distortion|add distortion|more distortion)\b/g,()=>{settings.grit+=.2;},'grit');
+    consume(/\b(?:less distortion|remove (?:the )?distortion)\b/g,m=>{settings.grit=m[0].startsWith('remove')?0:settings.grit-.2;},'grit');
+    consume(/\b(?:a )?night drive\b/g,()=>{settings={...settings,...presets.night};},'night');
+    consume(/\bdreamy\b/g,()=>{settings={...settings,pitch:2,tone:6500,echo:.32};},'dreamy');
+    consume(/\b(?:slow (?:it|this) down|slow drift|slower|slow)\b/g,()=>{settings.speed*=.8;},'slow');
+    consume(/\b(?:speed (?:it|this) up|faster)\b/g,()=>{settings.speed*=1.2;},'speed');
+    consume(/\b(?:brighter|brighten (?:it|this))\b/g,()=>{settings.tone=16000;},'tone');
+    consume(/\b(?:darker|muffle (?:it|this))\b/g,()=>{settings.tone=2400;},'tone');
+    rest=rest.replace(/\b(?:please|and|make it|make this|can you)\b/g,'').trim();
+    if(!seen.length||rest)return {error:'Try “slow it down”, “pitch up 3 semitones”, “more echo”, “more distortion”, “brighter” or “make it dreamy”. Instrument changes are not connected yet.'};
+    const preset=seen.includes('dreamy')&&seen.includes('slow')?'dreamslow':seen.includes('night')?'night':seen.includes('dreamy')?'dreamy':seen.includes('slow')?'slow':'custom';
+    return {settings:sanitize(settings),preset};
+  }
   function apply(settings,enabled=true) {
     applied=sanitize(settings);active=enabled;
     if(!chain)return;
@@ -49,5 +69,5 @@ const PortoWarp = (() => {
   }
   function bypass(value){bypassed=value;apply(applied,active);}
   function stop(){if(gate)gate.gain.value=0;}
-  return {available,sanitize,defaults,presets,prepare,apply,bypass,stop};
+  return {available,sanitize,parseRequest,defaults,presets,prepare,apply,bypass,stop};
 })();
