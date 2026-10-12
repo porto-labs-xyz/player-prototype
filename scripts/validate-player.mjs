@@ -6,6 +6,7 @@ const root=path.resolve(import.meta.dirname,'..');
 const editionSource=fs.readFileSync(path.join(root,'dist/artist-editions.js'),'utf8');
 const profileSource=fs.readFileSync(path.join(root,'dist/artist-profiles.js'),'utf8');
 const audioSource=fs.readFileSync(path.join(root,'dist/reformat-audio.js'),'utf8');
+const feedAudioSource=fs.readFileSync(path.join(root,'dist/feed-audio.js'),'utf8');
 const voiceSource=fs.readFileSync(path.join(root,'dist/voice-input.js'),'utf8');
 const octoberSource=fs.readFileSync(path.join(root,'dist/october.js'),'utf8');
 const playerSource=fs.readFileSync(path.join(root,'dist/app.js'),'utf8');
@@ -13,7 +14,7 @@ function session(initial={},options={}){
  const elements=new Map(),storage=new Map(Object.entries(initial)),windowEvents={},documentEvents={};
  const element=id=>{if(!elements.has(id))elements.set(id,{id,innerHTML:'',textContent:'',value:'',src:'',autoplay:false,playCalls:0,style:{},dataset:{},currentTime:0,ended:false,events:{},classList:{toggle(){},add(){},remove(){}},setAttribute(k,v){this[k]=v},getAttribute(k){return this[k]},removeAttribute(k){if(k!=='autoplay')delete this[k]},addEventListener(k,v){this.events[k]=v},load(){},pause(){this.events.pause?.()},async play(){this.playCalls++;this.events.play?.();this.events.playing?.()},focus(){},showModal(){this.open=true},close(){this.open=false}});return elements.get(id)};
  const context=vm.createContext({console,URLSearchParams,setTimeout:()=>0,clearTimeout(){},location:{hash:'',search:''},window:{addEventListener:(name,fn)=>windowEvents[name]=fn,scrollTo(){}},document:{querySelector:element,querySelectorAll:()=>[],addEventListener(name,fn){(documentEvents[name]??=[]).push(fn)},body:element('body')},localStorage:{getItem:k=>{if(options.blockRead)throw Error("storage blocked");return storage.get(k)??null},setItem:(k,v)=>{if(options.blockWrite)throw Error("storage full");storage.set(k,v)}}});
- vm.runInContext(editionSource+'\n'+profileSource+'\n'+(options.october?audioSource+'\n'+voiceSource+'\n'+octoberSource+'\n':'')+playerSource,context);
+ vm.runInContext(editionSource+'\n'+profileSource+'\n'+(options.october?audioSource+'\n'+feedAudioSource+'\n'+voiceSource+'\n'+octoberSource+'\n':'')+playerSource,context);
  return {context,elements,storage,windowEvents,documentEvents,run:code=>vm.runInContext(code,context)};
 }
 const s=session();
@@ -138,7 +139,7 @@ const submit=(s,text)=>{s.run("document.querySelector('#oct-prompt')").value=tex
 assert.equal(october.run('current.variationId'),'original');
 assert.equal(october.elements.get('#audio').src,'');
 assert.equal(october.elements.get('#audio').playCalls,0);
-assert.match(october.run("PortoOctober.view('home')"),/Kiki Static/);
+assert.match(october.run("PortoOctober.view('home')"),/Your feed/);
 assert.match(october.run("PortoOctober.view('budget')"),/No subscription/);
 assert.doesNotMatch(october.run("support()"),/25%|treasury/);
 assert.match(october.run("PortoOctober.view('studio')"),/type="button"[^>]*data-oct="voice"/);
@@ -226,3 +227,47 @@ action(reloadedEditions,'play','luna-dreamy');
 assert.equal(reloadedEditions.elements.get('#mini-title').textContent,'Reformat/002');
 assert.equal(reloadedEditions.elements.get('#oct-mini-stamp').textContent,'@luna.wav');
 console.log('PASS: stable numbered editions, old drafts migrated, per-edition artwork, creator stamps, player identity and mood search metadata.');
+
+// Multi-source versions must never borrow another track's audio, artwork or lineage.
+const community=session({}, {october:true});
+assert.match(community.run("PortoOctober.view('home')"),/Your feed/);
+assert.equal((community.run("PortoOctober.view('feed')").match(/class="oct-post"/g)||[]).length,25);
+for(const [source,clips] of Object.entries(community.run('FeedAudio'))){
+ for(const clip of Object.values(clips)){
+  assert.equal(clip.peaks.length,80);
+  assert(fs.statSync(path.join(root,'dist/assets',clip.file)).size>1000);
+  assert(fs.readFileSync(path.join(root,'dist/credits.html'),'utf8').includes(clip.file));
+ }
+ action(community,'play','original-'+source);
+ assert.equal(community.elements.get('#audio').src,'assets/'+clips.original.file);
+ action(community,'play',source+'-dreamy');
+ assert.equal(community.elements.get('#audio').src,'assets/'+clips.dreamy.file);
+}
+community.run("PortoOctober.view('original/dream-culture')");
+submit(community,'Make it dreamy');
+const newCommunityState=JSON.parse(community.storage.get('porto-reformat-v2'));
+const juneVersion=newCommunityState.variations[0];
+assert.equal(juneVersion.source,'dream-culture');assert.equal(juneVersion.number,5);
+assert.equal(juneVersion.parent,'original-dream-culture');
+assert.equal(community.run(`PortoOctober.title('${juneVersion.id}')`),'Dream Culture/005');
+assert.match(community.run(`PortoOctober.artwork('${juneVersion.id}')`),/borrowed-sun.webp/);
+assert.doesNotMatch(community.run(`PortoOctober.artwork('${juneVersion.id}')`),/sugar-circuit.webp/);
+const reloadCommunity=session(Object.fromEntries(community.storage),{october:true});
+action(reloadCommunity,'play',juneVersion.id);
+assert.equal(reloadCommunity.elements.get('#audio').src,'assets/feed-dream-culture-dreamy.mp3');
+action(reloadCommunity,'lineage',juneVersion.id);
+assert.match(reloadCommunity.elements.get('#dialog-content').innerHTML,/Dream Culture/);
+assert.doesNotMatch(reloadCommunity.elements.get('#dialog-content').innerHTML,/Reformat/);
+action(reloadCommunity,'budget-cap');
+action(reloadCommunity,'play','original-dream-culture');
+assert.equal(reloadCommunity.elements.get('#audio').src,'assets/borrowed-sun-a-1.mp3');
+assert.equal(reloadCommunity.run('playing'),true);
+action(reloadCommunity,'genre','Rock');
+const rockFeed=reloadCommunity.run("PortoOctober.view('home')");
+assert.match(rockFeed,/Exhilarate\/002/);assert.doesNotMatch(rockFeed,/Dream Culture\/002/);
+action(reloadCommunity,'genre','all');
+action(reloadCommunity,'feed-filter','following');
+assert.equal((reloadCommunity.run("PortoOctober.view('feed')").match(/class="oct-post"/g)||[]).length,0);
+action(reloadCommunity,'follow','noor');
+assert.match(reloadCommunity.run("PortoOctober.view('feed')"),/Dream Culture\/002/);
+console.log('PASS: 8 source tracks, 25 seeded posts, distinct playable audio, measured waveforms, source artwork, per-track numbering, migration, lineage, filters and original access after budget cap.');

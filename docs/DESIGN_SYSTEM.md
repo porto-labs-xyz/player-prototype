@@ -110,14 +110,14 @@ Use 44px primary controls, native dialogs, visible keyboard focus, explicit labe
 
 ## Feed and voice revision, 12 October 2026
 
-The latest home-page revision opens Kiki Static’s artist profile. The feed remains a separate primary destination. Use a native horizontal scrolling row of square Reformat cards with Original first, followed by creator variations. Place the circular creator photo and a 44px play control over each cover. The active card has a violet border, with coral marking elapsed waveform bars. Profile photos link to their creators; the local user uses a neutral silhouette instead of an invented likeness.
+The latest home-page revision returns the feed to the root URL and #home. Kiki Static remains the first selected source and a discoverable artist. Use a native horizontal scrolling row of square track cards with Reformat Original first, followed by a mix of artists and creator versions. Place the circular creator photo and a 44px play control over each cover. The active card has a violet border, with coral marking elapsed waveform bars. Profile photos link to their creators; the local user uses a neutral silhouette instead of an invented likeness.
 
 Keep the request composer directly below the row. The microphone pulses while starting or listening, with text for starting, listening, stopping and failures. Reduced-motion mode uses a static outline. The microphone never starts on page load, navigation or a timer. A second tap stops it. Keep the editable transcript, prepared-version suggestions and speech-service disclosure visible. These changes extend the existing Porto tokens; no new shared design-system or Figma release is claimed.
 
 
 ## Numbered variation artwork, 12 October 2026
 
-Use Reformat/002, Reformat/003 and onward for variation titles. Keep Original as the source label; 001 is reserved internally. Keep Dreamy, Night drive, Slow drift and Dreamy & slow as metadata tags, not title suffixes. Each version gets a distinct, stable browser-rendered crop, colour treatment and graphic composition derived from Kiki’s source artwork. Stamp its creator handle, such as @luna.wav, directly over the image in a paper label with dark type. Keep the profile-photo link and play control visible beneath the stamp. Small thumbnails retain the treatment; the track page exposes the full cover. Local versions use @you until a real account profile exists.
+Use Reformat/002, Reformat/003 and onward for variation titles. Keep Original as the source label; 001 is reserved internally. Keep Dreamy, Night drive, Slow drift and Dreamy & slow as metadata tags, not title suffixes. Each version gets a distinct, stable browser-rendered crop, colour treatment and graphic composition derived from each song’s source artwork. Stamp its creator handle, such as @luna.wav, directly over the image in a paper label with dark type. Keep the profile-photo link and play control visible beneath the stamp. Small thumbnails retain the treatment; the track page exposes the full cover. Local versions use @you until a real account profile exists.
 
 These are prototype cover treatments, with no image-generation service or change to the shared brand tokens. Numbers and artwork persist through reloads and remain consistent across the listening surfaces.
 
@@ -125,3 +125,7 @@ These are prototype cover treatments, with no image-generation service or change
 ### Image-effects refinement
 
 Apply a visible image effect in addition to colour: Dreamy uses soft-focus blur and a hazy double exposure; Night drive uses shifted glitch bands; Slow drift uses directional smear and ghosting; Dreamy & slow uses liquid displacement. Effects are static and rendered with CSS/SVG. Keep creator stamps, edition numbers, mood labels, profile photos and controls crisp. The source original receives no distortion.
+
+## Multi-artist home feed, 12 October 2026
+
+The feed is the home page, superseding the earlier Kiki Static landing choice. Mix source artists across the first horizontal row. Retain Original badges, numbered variant titles, mood tags, source-derived waveforms, creator avatars and stamped distortion/blur artwork. Genre chips filter the rotation and posts. A circular artist row exposes the existing fourteen profiles. Interleave 25 seeded posts from twelve fictional creators across eight source songs, with short authored captions and two columns on wider desktops. Local published versions lead the feed. The side column holds the voice/text composer and creator discovery; narrow screens stack the content. Additional fictional creators use distinct initial avatars; do not reuse portrait photos as different people. No live activity counters or relative timestamps are invented.

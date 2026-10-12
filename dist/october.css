@@ -88,7 +88,7 @@ html[data-theme=light]{--oct-violet:#654087;--oct-tint:#8d78b910}
 
 /* Static image treatments, leaving edition labels and creator stamps sharp. */
 .oct-filter-defs{position:absolute;pointer-events:none}
-.oct-art-echo,.oct-art-slice{position:absolute;inset:-8%;z-index:0;background:url('assets/sugar-circuit.webp') var(--art-x) center/cover no-repeat;pointer-events:none;filter:hue-rotate(var(--art-hue))}
+.oct-art-echo,.oct-art-slice{position:absolute;inset:-8%;z-index:0;background:var(--art-image) var(--art-x) center/cover no-repeat;pointer-events:none;filter:hue-rotate(var(--art-hue))}
 .oct-artwork.oct-effect-haze>img{filter:hue-rotate(var(--art-hue)) saturate(.75) contrast(.9) blur(clamp(.6px,1.1cqw,4px))}
 .oct-effect-haze .oct-art-echo{opacity:.42;mix-blend-mode:screen;transform:translateX(14%) scale(1.14);filter:hue-rotate(var(--art-hue)) blur(clamp(1px,2.2cqw,8px));mask-image:linear-gradient(110deg,transparent 12%,#000 60%)}
 .oct-effect-haze .oct-art-slice{display:none}
@@ -101,3 +101,16 @@ html[data-theme=light]{--oct-violet:#654087;--oct-tint:#8d78b910}
 .oct-artwork.oct-effect-liquid>img{filter:url('#oct-art-liquid') hue-rotate(var(--art-hue)) contrast(1.1) saturate(.85)}
 .oct-effect-liquid .oct-art-echo{opacity:.24;transform:translate(8%,5%) scale(1.18);filter:url('#oct-art-liquid') hue-rotate(var(--art-hue)) blur(clamp(.4px,.7cqw,3px));mix-blend-mode:screen}
 .oct-effect-liquid .oct-art-slice{display:none}
+
+/* A mixed catalogue and creator community, with a compact feed rhythm. */
+.oct-feed-heading{margin-bottom:20px}.oct-genre-filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}.oct-genre-filters button{white-space:nowrap}.oct-genre-filters .active{background:var(--paper);color:var(--bg);border-color:var(--paper)}
+.oct-artist-section{margin:28px 0 36px}.oct-artist-strip{display:flex;gap:24px;overflow-x:auto;padding:4px 0 16px}.oct-artist-strip>a{flex:0 0 112px;text-align:center}.oct-artist-strip img{width:80px;height:80px;object-fit:cover;border-radius:50%;margin:0 auto 10px;border:1px solid var(--line)}.oct-artist-strip strong{font-size:13px;display:block}.oct-artist-strip small{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+.oct-community-heading .oct-tabs{margin:0;border:0}.oct-community-heading h2{font-size:24px}.oct-feed-layout{grid-template-columns:minmax(0,1fr) 280px;gap:24px}.oct-posts{display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:16px}.oct-post-caption{font-size:14px;line-height:1.6;color:var(--muted);margin-top:16px}.oct-post-track h3{overflow-wrap:anywhere}.oct-post-actions{gap:14px;flex-wrap:wrap}.oct-posts>section,.oct-posts>.oct-empty{grid-column:1/-1}
+.oct-feed-aside{padding-left:24px}.oct-feed-aside h2{font-size:26px;margin:8px 0}.oct-feed-aside h3{font-size:18px;margin:32px 0 16px}.oct-sidebar-create #oct-prompt-form{margin-top:18px}.oct-sidebar-create .oct-composer{padding:12px;gap:8px}.oct-sidebar-create textarea{font-size:16px}.oct-sidebar-create .oct-composer-tools>span{display:none}.oct-sidebar-create .oct-suggestions{gap:6px}.oct-sidebar-create .oct-chip{font-size:12px;padding:8px 10px}.oct-sidebar-create p{margin:10px 0;font-size:12px}.oct-sidebar-create .oct-status:empty{display:none}
+.oct-creator-list{display:grid;gap:18px}.oct-creator-list>div{display:flex;gap:10px;align-items:center;min-width:0}.oct-creator-list a{min-width:0;flex:1}.oct-creator-list strong{font-size:12px;display:block}.oct-creator-list small{font-size:10px;margin:3px 0 0;overflow-wrap:anywhere}.oct-creator-list .oct-avatar{width:32px;height:32px}.oct-creator-list .oct-follow{font-size:11px;padding:6px 8px}
+.oct-track-title small{line-height:1.6;overflow-wrap:anywhere}
+@media(min-width:1250px){.oct-posts{grid-template-columns:repeat(2,minmax(0,1fr))}.oct-feed-layout{grid-template-columns:minmax(0,1fr) 280px}}
+@media(max-width:1000px){.oct-feed-layout{grid-template-columns:minmax(0,1fr)}.oct-feed-aside{border-left:0;padding:0}.oct-sidebar-create{max-width:640px}.oct-creator-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.oct-artist-strip{gap:16px}}
+@media(max-width:600px){.oct-community-heading{align-items:flex-start;flex-direction:column}.oct-community-heading .oct-tabs{width:100%;gap:24px}.oct-artist-strip>a{flex-basis:96px}.oct-artist-strip img{width:64px;height:64px}.oct-creator-list{grid-template-columns:minmax(0,1fr)}.oct-post{padding:16px}.oct-post-person{gap:8px}.oct-post-person strong{font-size:13px}.oct-post-person .oct-avatar{width:36px;height:36px}.oct-post-person .oct-follow{padding:8px 10px}.oct-feed-heading h1{font-size:36px}.oct-feed-feature h2,.oct-artist-section h2{font-size:23px}}
+
+.oct-feed-heading{margin-top:8px}.oct-feed-heading h1{font-size:38px}.oct-feed-feature>.oct-section-heading{margin:20px 0 16px}.oct-feed-feature .oct-track-card{flex-basis:176px}.oct-feed-feature .oct-track-title{min-height:67px}.oct-feed-feature .oct-track-card .oct-wave{height:32px}.oct-artist-section{margin:20px 0 28px}
