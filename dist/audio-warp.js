@@ -79,17 +79,19 @@ const PortoWarp = (() => {
         if(values.crush)samples=crushSamples(samples,values.crush);
         if(samples!==raw.getChannelData(c))raw.copyToChannel(samples,c);
       }
-      renderedBuffer=await Tone.Offline(context=>{
-        offlineContext=context;
-        const player=new Tone.Player({url:raw,fadeIn:.008,fadeOut:.008});nodes.push(player);
-        if(values.pitch)nodes.push(new Tone.PitchShift({pitch:values.pitch,windowSize:.1,wet:1}));
-        if(values.tone<20000)nodes.push(new Tone.Filter(values.tone,'lowpass'));
-        if(values.grit)nodes.push(new Tone.Distortion({distortion:values.grit,wet:.65}));
-        if(values.chop)nodes.push(new Tone.Tremolo({frequency:9,depth:1,type:'sine',wet:values.chop*.45}).start(0));
-        if(values.echo)nodes.push(new Tone.FeedbackDelay({delayTime:.23,feedback:.25,wet:values.echo}));
-        const limiter=new Tone.Limiter(-3);nodes.push(limiter);
-        player.chain(...nodes.slice(1));limiter.toDestination();player.start(0).stop(raw.duration);
-      },raw.duration,raw.numberOfChannels,raw.sampleRate);
+      // All events are scheduled upfront. Avoid Tone.Offline's per-second timer
+      // yields, which background/mobile browsers can throttle into long waits.
+      offlineContext=new Tone.OfflineContext(raw.numberOfChannels,raw.duration,raw.sampleRate);
+      const context=offlineContext;
+      const player=new Tone.Player({context,url:raw,fadeIn:.008,fadeOut:.008});nodes.push(player);
+      if(values.pitch)nodes.push(new Tone.PitchShift({context,pitch:values.pitch,windowSize:.1,wet:1}));
+      if(values.tone<20000)nodes.push(new Tone.Filter({context,frequency:values.tone,type:'lowpass'}));
+      if(values.grit)nodes.push(new Tone.Distortion({context,distortion:values.grit,wet:.65}));
+      if(values.chop)nodes.push(new Tone.Tremolo({context,frequency:9,depth:1,type:'sine',wet:values.chop*.45}).start(0));
+      if(values.echo)nodes.push(new Tone.FeedbackDelay({context,delayTime:.23,feedback:.25,wet:values.echo}));
+      const limiter=new Tone.Limiter({context,threshold:-3});nodes.push(limiter);
+      player.chain(...nodes.slice(1));limiter.toDestination();player.start(0).stop(raw.duration);
+      renderedBuffer=await context.render(false);
       if(!isCurrent())return null;
       return URL.createObjectURL(new Blob([wavBytes(renderedBuffer.get())],{type:'audio/wav'}));
     }finally{

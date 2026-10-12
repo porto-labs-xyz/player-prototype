@@ -19,7 +19,7 @@ const Tone={
  start(){throw Error('Playback must not use a live context')},
  Player:Node,PitchShift:Node,Filter:Node,Distortion:Node,FeedbackDelay:Node,Tremolo:Node,Limiter:Node,
  ToneAudioBuffer:{fromUrl(){decodeCount++;if(hold){hold=false;return new Promise(resolve=>{release=()=>resolve(buffer())})}return Promise.resolve(buffer())}},
- async Offline(callback){renderCount++;const first=nodes.length;callback({dispose(){contextDisposals++}});return {get:()=>nodes[first].options.url,dispose(){}}}
+ OfflineContext:class {constructor(){this.first=nodes.length} async render(asynchronous){assert.equal(asynchronous,false);renderCount++;assert(nodes.slice(this.first).every(n=>n.options.context===this));return {get:()=>nodes[this.first].options.url,dispose(){}}} dispose(){contextDisposals++}}
 };
 const context=vm.createContext({console,Blob,URL:{createObjectURL(blob){created.push(blob);return 'blob:render-'+created.length},revokeObjectURL(url){revoked.push(url)}},Tone,audio});
 vm.runInContext(code,context);let current=true;context.isCurrent=()=>current;
@@ -44,7 +44,7 @@ assert.deepEqual(Array.from(crushed),[.125,-.25,.375]);
 await vm.runInContext('PortoWarp.prepare(audio,{crush:.8},isCurrent)',context);
 assert.equal(revoked.length,1);assert(!revoked.includes(audio.src));
 // Concurrent requests render serially; cancelled queued work cannot replace the winner.
-let finish;const offline=Tone.Offline;Tone.Offline=async callback=>{await new Promise(resolve=>finish=resolve);return offline(callback)};
+let finish;const render=Tone.OfflineContext.prototype.render;Tone.OfflineContext.prototype.render=async function(asynchronous){await new Promise(resolve=>finish=resolve);return render.call(this,asynchronous)};
 let firstCurrent=true;context.firstCurrent=()=>firstCurrent;
 const first=vm.runInContext('PortoWarp.prepare(audio,{pitch:4},firstCurrent)',context);await new Promise(setImmediate);
 firstCurrent=false;
