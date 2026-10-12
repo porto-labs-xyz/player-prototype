@@ -9,13 +9,14 @@ const audioSource=fs.readFileSync(path.join(root,'dist/reformat-audio.js'),'utf8
 const feedAudioSource=fs.readFileSync(path.join(root,'dist/feed-audio.js'),'utf8');
 const voiceSource=fs.readFileSync(path.join(root,'dist/voice-input.js'),'utf8');
 const warpSource=fs.readFileSync(path.join(root,'dist/audio-warp.js'),'utf8');
+const graphSource=fs.readFileSync(path.join(root,'dist/genealogy-graph.js'),'utf8');
 const octoberSource=fs.readFileSync(path.join(root,'dist/october.js'),'utf8');
 const playerSource=fs.readFileSync(path.join(root,'dist/app.js'),'utf8');
 function session(initial={},options={}){
  const elements=new Map(),storage=new Map(Object.entries(initial)),windowEvents={},documentEvents={};
  const element=id=>{if(!elements.has(id))elements.set(id,{id,innerHTML:'',textContent:'',value:'',src:'',autoplay:false,playCalls:0,style:{},dataset:{},currentTime:0,ended:false,events:{},classList:{toggle(){},add(){},remove(){}},setAttribute(k,v){this[k]=v},getAttribute(k){return this[k]},removeAttribute(k){if(k!=='autoplay')delete this[k]},addEventListener(k,v){const old=this.events[k];this.events[k]=old?(...args)=>{old(...args);v(...args)}:v},load(){this.currentTime=0;this.events.emptied?.()},pause(){this.paused=true;this.events.pause?.()},async play(){this.paused=false;this.playCalls++;this.events.play?.();this.events.playing?.()},focus(){},querySelector:selector=>element(selector),showModal(){this.open=true},close(){this.open=false;this.events.close?.()}});return elements.get(id)};
  const context=vm.createContext({console,URLSearchParams,setTimeout:()=>0,clearTimeout(){},location:{hash:'',search:''},window:{addEventListener:(name,fn)=>windowEvents[name]=fn,scrollTo(){}},document:{querySelector:element,querySelectorAll:()=>[],addEventListener(name,fn){(documentEvents[name]??=[]).push(fn)},body:element('body')},localStorage:{getItem:k=>{if(options.blockRead)throw Error("storage blocked");return storage.get(k)??null},setItem:(k,v)=>{if(options.blockWrite)throw Error("storage full");storage.set(k,v)}}});
- vm.runInContext(editionSource+'\n'+profileSource+'\n'+(options.october?audioSource+'\n'+feedAudioSource+'\n'+voiceSource+'\n'+warpSource+'\n'+octoberSource+'\n':'')+playerSource,context);
+ vm.runInContext(editionSource+'\n'+profileSource+'\n'+(options.october?audioSource+'\n'+feedAudioSource+'\n'+voiceSource+'\n'+warpSource+'\n'+graphSource+'\n'+octoberSource+'\n':'')+playerSource,context);
  return {context,elements,storage,windowEvents,documentEvents,run:code=>vm.runInContext(code,context)};
 }
 const s=session();
@@ -320,3 +321,24 @@ const prompted=JSON.parse(sheet.storage.get('porto-reformat-v2')).variations[0];
 assert.equal(prompted.settings.grit,.2);assert.equal(prompted.settings.echo,.32);
 assert.equal(sheet.elements.get('#oct-voice-sheet').open,false);
 console.log('PASS: bottom voice/text sheet opens and closes, unsupported speech feedback stays in the sheet, prompt-only effects create a child and no sound sliders are rendered.');
+
+// Graph edges use real parents, and illustrative royalties stay separate from plays.
+assert.equal((family.match(/data-node=/g)||[]).length,5);
+assert.equal((family.match(/data-from=/g)||[]).length,4);
+assert.match(family,/data-from="luna-dreamy" data-to="sora-dreamslow"/);
+assert.match(family,/Royalties generated/);
+assert.match(family,/Illustrative amounts, not earned or paid/);
+const demoTotal=family.match(/Royalties generated[\s\S]*?<strong>([^<]+)/)[1];
+const countedFamily=session({'porto-reformat-v2':JSON.stringify({plays:{original:200}})},{october:true}).run("PortoOctober.view('original/reformat')");
+assert.equal(countedFamily.match(/Royalties generated[\s\S]*?<strong>([^<]+)/)[1],demoTotal);
+assert.match(dna.run(`PortoOctober.view('variation/${JSON.parse(dna.storage.get('porto-reformat-v2')).variations[0].id}')`),/This version <b>DEMO<\/b><\/span><strong>£0.00/);
+const deepNodes=Array.from({length:35},(_,i)=>({id:String(i),parent:i?String(i-1):null}));
+const graphContext=vm.createContext({window:{addEventListener(){}}});vm.runInContext(graphSource,graphContext);
+graphContext.nodes=deepNodes;
+const positions=vm.runInContext('PortoGeneGraph.layout(nodes)',graphContext);
+assert.equal(positions.length,35);assert(positions.every(p=>[p.x,p.y,p.z].every(Number.isFinite)));
+assert.equal(positions.at(-1).depth,34);
+assert.notDeepEqual(vm.runInContext('PortoGeneGraph.project({x:100,y:50,z:70},0,0)',graphContext),vm.runInContext('PortoGeneGraph.project({x:100,y:50,z:70},.8,.4)',graphContext));
+sheet.run("PortoOctober.view('original/dream-culture')");action(sheet,'prompt-open');
+assert.match(sheet.elements.get('#oct-voice-sheet').innerHTML,/Co-create with June Arcade/);
+console.log('PASS: graph parent edges, every version, deep-family projection, independent demo royalties and source-specific co-create heading.');

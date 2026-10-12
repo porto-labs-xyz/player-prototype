@@ -147,3 +147,9 @@ The user requested fun profile pictures in varied styles. Eight fictional creato
 ## Quiet voice input, 12 October 2026
 
 The user requested discovery through use. Remove the How should it sound heading, Talk to Porto eyebrow, instructional labels, textarea placeholder and suggested prompt chips from the pop-out. Keep an empty editable input, voice control, submit arrow, source track identity and close action. Preserve nonvisual accessible labels, live recognition/error feedback and a brief speech-processing disclosure. This supersedes the suggestion-heavy composer guidance above; voice and text remain the only transformation input.
+
+## Orbitable genealogy and co-creation, 12 October 2026
+
+The user requested Co-create with the source artist in the audio pop-out, a 3D knowledge-graph style genealogy and made-up royalty totals. The pop-out now names the current source artist, retaining the empty editable input. Genealogy uses a browser-native SVG projection of actual 3D coordinates with user-controlled orbit, zoom, reset and keyboard rotation. Directed edges follow saved parent IDs; the selected ancestry is highlighted, including forks from child versions. Every seeded version and local draft remains represented. A collapsible semantic list provides full titles, per-node plays, artwork, playback and illustrative royalties.
+
+Family and selected-track royalties show stable invented GBP figures with adjacent DEMO labels. Local drafts start at zero; local play counts do not change money. These examples do not claim earned income, creator entitlement, rights-holder allocation or a live payout ledger. Shared tokens, real source-audio attribution and voice/text-only transformation remain unchanged. This is a prototype visual pattern, not a native Figma release.
