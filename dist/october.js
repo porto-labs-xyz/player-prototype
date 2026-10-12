@@ -14,27 +14,40 @@ const PortoOctober = (() => {
     dreamslow:{label:'Dreamy & slow', prompt:'Slow it down. Make it dreamy.', file:'dreamslow'}
   };
   const seeds = [
-    {id:'luna-dreamy', preset:'dreamy', creator:'luna', parent:'original', published:true},
-    {id:'kai-night', preset:'night', creator:'kai', parent:'original', published:true},
-    {id:'milo-slow', preset:'slow', creator:'milo', parent:'original', published:true},
-    {id:'sora-dreamslow', preset:'dreamslow', creator:'sora', parent:'luna-dreamy', published:true}
+    {id:'luna-dreamy', number:2, preset:'dreamy', creator:'luna', parent:'original', published:true},
+    {id:'kai-night', number:3, preset:'night', creator:'kai', parent:'original', published:true},
+    {id:'milo-slow', number:4, preset:'slow', creator:'milo', parent:'original', published:true},
+    {id:'sora-dreamslow', number:5, preset:'dreamslow', creator:'sora', parent:'luna-dreamy', published:true}
   ];
   const empty = () => ({variations:[], follows:[], saved:[], spent:6.4, topup:0});
   let state=empty(), storageOK=true, selected='original', feedFilter='all', prompt='', notice='', searchText='';
   const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const all = () => [...seeds,...state.variations];
   const find = id => all().find(v=>v.id===id);
-  const title = id => id==='original'?'Reformat':`Reformat / ${presets[find(id)?.preset]?.label||'Variation'}`;
+  const edition = id => String(find(id)?.number||1).padStart(3,'0');
+  const title = id => id==='original'?'Reformat':`Reformat/${edition(id)}`;
+  const handle = id => {const v=find(id);return v?.creator==='you'?'@you':'@'+(creators.find(c=>c.id===v?.creator)?.handle||'kikistatic');};
+  function artStyle(id) {
+    const v=find(id);if(!v)return '';
+    const palettes={dreamy:['#9380f0','#c697d9',320],night:['#22668d','#203055',260],slow:['#e6a24f','#8b4141',90],dreamslow:['#74c8b1','#3a527b',220]};
+    const [tint,shade,hue]=palettes[v.preset],n=v.number;
+    return `--art-tint:${tint};--art-shade:${shade};--art-hue:${hue+(n-2)*7}deg;--art-turn:${(n%5-2)*2}deg;--art-scale:${1.12+(n%4)*.08};--art-x:${35+(n*13%36)}%;--art-angle:${n*47%360}deg;--art-orbit:${12+n*17%55}%;`;
+  }
+  function artwork(id,extra='') {
+    const v=find(id);
+    return `<span class="oct-artwork ${v?'is-variation':''} ${extra}" style="${artStyle(id)}" role="img" aria-label="${esc(v?title(id)+' artwork, stamped '+handle(id):'Sugar Circuit original artwork')}"><img src="assets/sugar-circuit.webp" alt="">${v?`<span class="oct-art-orbit" aria-hidden="true"></span><span class="oct-art-number" aria-hidden="true">/${edition(id)}</span><span class="oct-art-stamp" aria-hidden="true">${handle(id)}</span>`:''}</span>`;
+  }
   const money = n => '£'+n.toFixed(2);
   const capped = () => state.spent >= 10+state.topup;
   function load() {
     try {
       const raw=JSON.parse(localStorage.getItem(key)||'null');
       if(!raw || typeof raw!=='object')return;
-      const next=empty(), ids=new Set(seeds.map(v=>v.id).concat('original'));
+      const next=empty(), ids=new Set(seeds.map(v=>v.id).concat('original')), numbers=new Set(seeds.map(v=>v.number));
       for(const v of (Array.isArray(raw.variations)?raw.variations:[]).slice(0,30)) {
         if(!v || typeof v.id!=='string' || !/^you-[a-z0-9-]{1,50}$/.test(v.id) || ids.has(v.id) || !Object.hasOwn(presets,v.preset) || !ids.has(v.parent))continue;
-        next.variations.push({id:v.id,preset:v.preset,parent:v.parent,creator:'you',published:v.published===true});ids.add(v.id);
+        const number=Number.isSafeInteger(v.number)&&v.number>5&&v.number<100000&&!numbers.has(v.number)?v.number:Math.max(...numbers)+1;
+        numbers.add(number);next.variations.push({id:v.id,number,preset:v.preset,parent:v.parent,creator:'you',published:v.published===true});ids.add(v.id);
       }
       next.follows=[...new Set((Array.isArray(raw.follows)?raw.follows:[]).filter(id=>creators.some(c=>c.id===id)))];
       next.saved=[...new Set((Array.isArray(raw.saved)?raw.saved:[]).filter(id=>ids.has(id)))];
@@ -63,16 +76,16 @@ const PortoOctober = (() => {
     const output=document.querySelector('#oct-voice-status');if(output)output.textContent=message;
   }
   function composer() {
-    return `<form id="oct-prompt-form"><label for="oct-prompt">Make this track yours <span id="oct-source-label">· ${esc(selected==='original'?'Original':presets[find(selected)?.preset]?.label||'Original')}</span></label><div class="oct-composer"><textarea id="oct-prompt" rows="2" maxlength="300" placeholder="Slow it down. Make it dreamy.">${esc(prompt)}</textarea><button class="oct-round" type="submit" aria-label="Choose prepared variation">↑</button></div><div class="oct-composer-tools">${btn('voice',wave(true)+'<span class="oct-voice-label">Talk to Porto</span>','','text-button')}<span>Speak or type a request</span></div><p id="oct-voice-status" class="oct-status" role="status"></p><div class="oct-suggestions">${Object.entries(presets).map(([id,p])=>btn('prompt',p.label,id,'oct-chip')).join('')}</div><p id="oct-request-status" class="oct-status" role="status">${esc(notice)}</p><p class="oct-voice-privacy">Speech uses your browser’s recognition service, which may process audio online. Review your text before submitting. Music versions are prepared, with no AI transformation.</p></form>`;
+    return `<form id="oct-prompt-form"><label for="oct-prompt">Make this track yours <span id="oct-source-label">· ${esc(selected==='original'?'Original':title(selected))}</span></label><div class="oct-composer"><textarea id="oct-prompt" rows="2" maxlength="300" placeholder="Slow it down. Make it dreamy.">${esc(prompt)}</textarea><button class="oct-round" type="submit" aria-label="Choose prepared variation">↑</button></div><div class="oct-composer-tools">${btn('voice',wave(true)+'<span class="oct-voice-label">Talk to Porto</span>','','text-button')}<span>Speak or type a request</span></div><p id="oct-voice-status" class="oct-status" role="status"></p><div class="oct-suggestions">${Object.entries(presets).map(([id,p])=>btn('prompt',p.label,id,'oct-chip')).join('')}</div><p id="oct-request-status" class="oct-status" role="status">${esc(notice)}</p><p class="oct-voice-privacy">Speech uses your browser’s recognition service, which may process audio online. Review your text before submitting. Music versions are prepared, with no AI transformation.</p></form>`;
   }
   function trackCard(id) {
     const v=find(id), creator=v?.creator||'original';
     const person=creators.find(c=>c.id===creator);
-    return `<article class="oct-track-card" data-track="${id}"><div class="oct-track-art"><img src="assets/sugar-circuit.webp" alt="Sugar Circuit artwork"><span class="oct-track-badge">${v?presets[v.preset].label:'Original'}</span><a class="oct-track-person" href="${creator==='original'?'#artist/kiki-static':'#creator/'+creator}" aria-label="${person?.name||(creator==='you'?'Your profile':'Kiki Static profile')}">${avatar(creator)}</a><button class="oct-round" data-oct="play" data-id="${id}" aria-label="Play ${title(id)}">${playIcon}</button></div><a class="oct-track-title" href="${v?'#variation/'+id:'#original'}"><strong>${v?presets[v.preset].label:'Original'}</strong><small>${person?'@'+person.handle:creator==='you'?'Your version':'Kiki Static'}</small></a>${wave(false,id)}</article>`;
+    return `<article class="oct-track-card" data-track="${id}"><div class="oct-track-art">${artwork(id)}<span class="oct-track-badge">${v?presets[v.preset].label:'Original'}</span><a class="oct-track-person" href="${creator==='original'?'#artist/kiki-static':'#creator/'+creator}" aria-label="${person?.name||(creator==='you'?'Your profile':'Kiki Static profile')}">${avatar(creator)}</a><button class="oct-round" data-oct="play" data-id="${id}" aria-label="Play ${title(id)}">${playIcon}</button></div><a class="oct-track-title" href="${v?'#variation/'+id:'#original'}"><strong>${v?title(id):'Original'}</strong><small>${person?'@'+person.handle:creator==='you'?'Your version':'Kiki Static'}</small></a>${wave(false,id)}</article>`;
   }
   function syncPlayback() {
     const sourceLabel=document.querySelector('#oct-source-label');
-    if(sourceLabel)sourceLabel.textContent='· '+(selected==='original'?'Original':presets[find(selected)?.preset]?.label||'Original');
+    if(sourceLabel)sourceLabel.textContent='· '+(selected==='original'?'Original':title(selected));
     document.querySelectorAll('[data-oct="play"]').forEach(b=>{
       const active=current.concept&&current.variationId===b.dataset.id;
       b.innerHTML=(active&&playing?pauseIcon:playIcon)+(b.classList.contains('oct-round')?'':active&&playing?' Pause':' Play');
@@ -92,14 +105,14 @@ const PortoOctober = (() => {
   function followButton(id) {return `<button class="oct-follow" data-oct="follow" data-id="${id}" aria-pressed="${state.follows.includes(id)}" aria-label="${state.follows.includes(id)?'Unfollow':'Follow'} ${creators.find(c=>c.id===id).name}">${state.follows.includes(id)?'Following':'Follow'}</button>`;}
   function variationCard(v) {
     const c=creators.find(c=>c.id===v.creator)||{name:'You',handle:'you'};
-    return `<article class="oct-post"><div class="oct-post-person">${avatar(v.creator)}<a href="#creator/${v.creator}"><strong>${c.name}</strong><small>@${c.handle}</small></a>${v.creator==='you'?'<span class="oct-tag">YOUR VERSION</span>':followButton(v.creator)}</div><div class="oct-post-track"><img src="assets/sugar-circuit.webp" alt="Sugar Circuit artwork"><div><span class="oct-kicker">VARIATION</span><h3><a href="#variation/${v.id}">${title(v.id)}</a></h3><a class="oct-attribution" href="#original">From Kiki Static’s original</a></div><button class="oct-round" data-oct="play" data-id="${v.id}" aria-label="Play ${title(v.id)}">${playIcon}</button></div>${wave(false,v.id)}<div class="oct-post-actions">${btn('lineage','View lineage',v.id,'text-button')}${btn('refine','Make your version',v.id,'text-button')}${btn('save',state.saved.includes(v.id)?'Saved':'Save',v.id,'text-button')}</div></article>`;
+    return `<article class="oct-post"><div class="oct-post-person">${avatar(v.creator)}<a href="#creator/${v.creator}"><strong>${c.name}</strong><small>@${c.handle}</small></a>${v.creator==='you'?'<span class="oct-tag">YOUR VERSION</span>':followButton(v.creator)}</div><div class="oct-post-track">${artwork(v.id,'oct-post-art')}<div><span class="oct-kicker">${presets[v.preset].label}</span><h3><a href="#variation/${v.id}">${title(v.id)}</a></h3><a class="oct-attribution" href="#original">From Kiki Static’s original</a></div><button class="oct-round" data-oct="play" data-id="${v.id}" aria-label="Play ${title(v.id)}">${playIcon}</button></div>${wave(false,v.id)}<div class="oct-post-actions">${btn('lineage','View lineage',v.id,'text-button')}${btn('refine','Make your version',v.id,'text-button')}${btn('save',state.saved.includes(v.id)?'Saved':'Save',v.id,'text-button')}</div></article>`;
   }
   function searchResults() {
     const q=searchText.trim().toLowerCase();
     const items=[{label:'Reformat',meta:'Kiki Static · Original',href:'#original',art:'sugar-circuit.webp'},
-      ...all().map(v=>({label:title(v.id),meta:'Kiki Static · '+(v.creator==='you'?'Your version':'@'+creators.find(c=>c.id===v.creator).handle),href:'#variation/'+v.id,art:'sugar-circuit.webp'})),
+      ...all().map(v=>({label:title(v.id),meta:presets[v.preset].label+' · '+handle(v.id),href:'#variation/'+v.id,version:v.id})),
       ...records.map(r=>({label:r.title,meta:r.artist+' · '+r.genre,href:'#record/'+r.id,art:r.art,keywords:r.tracks.flat().join(' ')}))].filter(v=>(v.label+' '+v.meta+' '+(v.keywords||'')).toLowerCase().includes(q));
-    return items.length?items.map(v=>`<a class="oct-search-result" href="${v.href}"><img src="assets/${v.art}" alt=""><span><strong>${v.label}</strong><small>${v.meta}</small></span><span aria-hidden="true">↗</span></a>`).join(''):'<div class="oct-empty"><h2>No music found.</h2><p>Try a track, artist, creator or mood.</p></div>';
+    return items.length?items.map(v=>`<a class="oct-search-result" href="${v.href}">${v.version?artwork(v.version,'oct-search-art'):`<img src="assets/${v.art}" alt="">`}<span><strong>${v.label}</strong><small>${v.meta}</small></span><span aria-hidden="true">↗</span></a>`).join(''):'<div class="oct-empty"><h2>No music found.</h2><p>Try a track, artist, creator or mood.</p></div>';
   }
   function search() {
     return `<div class="oct-section-heading"><div><p class="oct-kicker">FIND YOUR NEXT LISTEN</p><h1>Search your music.</h1></div></div><label class="oct-search-field" for="oct-search">Tracks, artists, creators and versions<input id="oct-search" type="search" value="${esc(searchText)}" placeholder="Try Reformat, dreamy or Kiki Static"></label><div id="oct-search-results" aria-live="polite">${searchResults()}</div>`;
@@ -107,7 +120,7 @@ const PortoOctober = (() => {
   function studio(id) {
     if(id && (id==='original'||find(id)))selected=id;
     const v=find(selected), isVariation=!!v;
-    return `<div class="oct-section-heading"><div><p class="oct-kicker">REFORMAT / KIKI STATIC</p><h1>${isVariation?presets[v.preset].label:'Original'}</h1></div>${badge()}</div><div class="oct-studio"><a class="oct-source" href="#record/sugar-circuit"><img src="assets/sugar-circuit.webp" alt=""><span><strong>${title(selected)}</strong><small>Sugar Circuit · Hyperpop</small></span><span aria-hidden="true">↗</span></a>${wave()}<div class="actions">${btn('play',playIcon+' Play',selected,'primary')}${btn('lineage','View lineage',selected)}${v?.creator==='you'?btn('share',v.published?'Shared to your feed':'Share to feed',selected):''}</div>${composer()}<details class="oct-permissions"><summary>About these versions</summary><p>Four prepared audio edits let you try the listening and sharing flow. Dreamy adds echo, Night drive filters and slows the track, Slow drift lowers the tempo, and Dreamy & slow combines both edits. No model or instrument separation runs here.</p><p>Reformat is by Kevin MacLeod, used under CC BY 4.0. Kiki Static and the creator profiles are fictional. An eventual artist model requires the source artist’s permissions.</p></details></div>${footnote()}`;
+    return `<div class="oct-section-heading"><div><p class="oct-kicker">REFORMAT / KIKI STATIC</p><h1>${isVariation?title(selected):'Original'}</h1>${isVariation?`<span class="oct-tag">${presets[v.preset].label}</span>`:''}</div>${badge()}</div><div class="oct-studio">${isVariation?artwork(selected,'oct-studio-art'):''}<a class="oct-source" href="#record/sugar-circuit">${artwork(selected,'oct-source-art')}<span><strong>${title(selected)}</strong><small>Sugar Circuit · Hyperpop</small></span><span aria-hidden="true">↗</span></a>${wave()}<div class="actions">${btn('play',playIcon+' Play',selected,'primary')}${btn('lineage','View lineage',selected)}${v?.creator==='you'?btn('share',v.published?'Shared to your feed':'Share to feed',selected):''}</div>${composer()}<details class="oct-permissions"><summary>About these versions</summary><p>Four prepared audio edits let you try the listening and sharing flow. Dreamy adds echo, Night drive filters and slows the track, Slow drift lowers the tempo, and Dreamy & slow combines both edits. No model or instrument separation runs here.</p><p>Reformat is by Kevin MacLeod, used under CC BY 4.0. Kiki Static and the creator profiles are fictional. An eventual artist model requires the source artist’s permissions.</p></details></div>${footnote()}`;
   }
   function feed(creator) {
     const person=creators.find(c=>c.id===creator);
@@ -120,8 +133,8 @@ const PortoOctober = (() => {
   }
   const ledgerRows=[
     {id:'original',label:'Reformat',type:'Original',revenue:3,pool:2.7,rate:90,status:'Confirmed'},
-    {id:'luna-dreamy',label:'Reformat / Dreamy',type:'User Variation Track · @luna.wav',revenue:4,pool:2.8,rate:70,status:'Sent'},
-    {id:'milo-slow',label:'Reformat / Slow drift',type:'User Variation Track · @milo.fm',revenue:2,pool:1.4,rate:70,status:'Owed'}
+    {id:'luna-dreamy',label:'Reformat/002',type:'Dreamy · @luna.wav',revenue:4,pool:2.8,rate:70,status:'Sent'},
+    {id:'milo-slow',label:'Reformat/004',type:'Slow drift · @milo.fm',revenue:2,pool:1.4,rate:70,status:'Owed'}
   ];
   function ledger() {
     return `<div class="oct-section-heading"><div><p class="oct-kicker">PORTO LEDGER</p><h1>Every royalty connected.</h1><p class="oct-subtitle">Stream. Share. Get paid.</p></div>${badge()}</div><div class="oct-ledger-summary"><article><span>Illustrative listening revenue</span><strong>£9.00</strong></article><article><span>Rights-holder pool</span><strong>£6.90</strong></article><article><span>Daily USDC payouts on Aptos</span><strong class="oct-target">Product target</strong></article></div><div class="oct-ledger-table"><table><caption>Example entries for Kiki Static’s Reformat. These are not your listening-budget transactions.</caption><thead><tr><th scope="col">Track / source</th><th scope="col">Revenue</th><th scope="col">Rights pool</th><th scope="col">Status</th><th scope="col">Record</th></tr></thead><tbody>${ledgerRows.map(r=>`<tr><th scope="row">${r.label}<small>${r.type}</small></th><td>${money(r.revenue)}</td><td>${money(r.pool)}<small>${r.rate}% allocation</small></td><td><span class="oct-tag">${r.status}</span></td><td>${btn('payout','Details',r.id,'text-button')}</td></tr>`).join('')}</tbody></table></div><div class="oct-ledger-explainer"><div><span class="oct-kicker">ACCOUNTABLE. TRACKABLE. VERIFIABLE.</span><h2>Proof behind<br>every payment.</h2></div><p>The proposed payout record connects an amount, recipient, rights version and allocation to a transaction and confirmation. Porto submits accepted usage. Private listening data stays off chain.</p></div><p class="oct-note">All entries and statuses above are illustrative, with no real transaction or wallet. GBP allocation examples are not USDC transfers or exchange-rate quotes. Daily USDC payouts are a product target; Mainnet release remains gated.</p>`;
@@ -129,12 +142,12 @@ const PortoOctober = (() => {
   function lineage(id) {
     const chain=[], seen=new Set();let v=find(id);
     while(v&&!seen.has(v.id)){seen.add(v.id);chain.unshift(v);v=find(v.parent);}
-    modal(`<p class="oct-kicker">TRACK LINEAGE</p><h2>Always linked to the original.</h2><ol class="oct-lineage"><li><strong>Reformat</strong><span>Kevin MacLeod · Original · CC BY 4.0</span></li>${chain.map(v=>`<li><strong>${presets[v.preset].label}</strong><span>Creator: ${v.creator==='you'?'You':'@'+creators.find(c=>c.id===v.creator).handle}</span></li>`).join('')}</ol><p>Original rights stay with the source rights holders. Artist permissions apply to every branch. Creator credit alone does not confer a royalty share.</p><p class="oct-note">Fictional lineage, saved only in this browser.</p>`);
+    modal(`<p class="oct-kicker">TRACK LINEAGE</p><h2>Always linked to the original.</h2><ol class="oct-lineage"><li><strong>Reformat</strong><span>Kevin MacLeod · Original · CC BY 4.0</span></li>${chain.map(v=>`<li><strong>${title(v.id)}</strong><span>${presets[v.preset].label}</span><span>Creator: ${v.creator==='you'?'You':'@'+creators.find(c=>c.id===v.creator).handle}</span></li>`).join('')}</ol><p>Original rights stay with the source rights holders. Artist permissions apply to every branch. Creator credit alone does not confer a royalty share.</p><p class="oct-note">Fictional lineage, saved only in this browser.</p>`);
   }
   function share(id) {
     const v=state.variations.find(v=>v.id===id);if(!v)return;
     if(v.published){toast('This version is already on your local feed.');return;}
-    modal(`<p class="oct-kicker">SHARE YOUR VERSION</p><h2>${title(id)}</h2><p>Created by you, from Reformat by Kevin MacLeod, shown in the fictional Kiki Static catalogue. Source credit and lineage stay attached.</p><div class="oct-share-permission"><strong>Prepared audio · CC BY 4.0</strong><p>This edit retains Kevin MacLeod’s source attribution. Reuse follows the recording’s licence; fictional profile artwork has separate terms. <a href="credits.html#reformat-versions">Read the credits</a>.</p></div><p>This publishes to your browser’s demo feed only. Nothing is sent to other people.</p>${btn('publish','Share to my demo feed',id,'primary coral')}`);
+    modal(`<p class="oct-kicker">SHARE YOUR VERSION</p><h2>${title(id)}</h2>${artwork(id,'oct-share-art')}<p><span class="oct-tag">${presets[v.preset].label}</span></p><p>Created by you, from Reformat by Kevin MacLeod, shown in the fictional Kiki Static catalogue. Source credit and lineage stay attached.</p><div class="oct-share-permission"><strong>Prepared audio · CC BY 4.0</strong><p>This edit retains Kevin MacLeod’s source attribution. Reuse follows the recording’s licence; fictional profile artwork has separate terms. <a href="credits.html#reformat-versions">Read the credits</a>.</p></div><p>This publishes to your browser’s demo feed only. Nothing is sent to other people.</p>${btn('publish','Share to my demo feed',id,'primary coral')}`);
   }
   function payout(id) {
     const r=ledgerRows.find(r=>r.id===id);if(!r)return;
@@ -165,7 +178,7 @@ const PortoOctober = (() => {
     if(!hasDirection||remainder)return {error:'Choose a prepared dreamy, night drive, slower or dreamy + slow version. Other transformations are not connected yet.'};
     if(state.variations.length>=30)return {error:'Your demo has 30 saved versions. Open About this demo to reset the walkthrough.'};
     const preset=(/dream/.test(s)&&/slow/.test(s))?'dreamslow':/night/.test(s)?'night':/slow/.test(s)?'slow':'dreamy';
-    const v={id:'you-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),preset,parent:selected,creator:'you',published:false};
+    const v={id:'you-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7),number:Math.max(...all().map(v=>v.number))+1,preset,parent:selected,creator:'you',published:false};
     state.variations.push(v);persist();selected=v.id;return {variation:v};
   }
   function about() {
@@ -181,6 +194,10 @@ const PortoOctober = (() => {
       document.querySelector('#player-mode').textContent=current.variationId==='original'?'ORIGINAL':'VARIATION';
       document.querySelector('#play').setAttribute('aria-label',playing?'Pause playback':'Play demo preview');
     } else {delete document.querySelector('#player-collection').dataset.oct;document.querySelector('#player-collection').dataset.action='save';}
+    const mini=document.querySelector('#oct-mini-art'),stamp=document.querySelector('#oct-mini-stamp');
+    const id=current.concept?current.variationId:'original',v=find(id);
+    if(mini){mini.className='oct-artwork oct-mini-art'+(v?' is-variation':'');mini.style.cssText=artStyle(id);}
+    if(stamp){stamp.textContent=v?handle(id):'';stamp.hidden=!v;}
     syncVoice();syncPlayback();
   }
   function view(route) {
@@ -258,5 +275,5 @@ const PortoOctober = (() => {
     window.addEventListener('storage',e=>{if(e.key===key||e.key===null){state=empty();load();if(!find(selected))selected='original';if(current.concept&&current.variationId!=='original'&&(capped()||!find(current.variationId)))pause();render();}});
     sync();
   }
-  return {view,init,sync,canPlay,about,createVariation,stopVoice:()=>voice?.cancel()};
+  return {view,init,sync,canPlay,about,createVariation,title,artwork,stopVoice:()=>voice?.cancel()};
 })();

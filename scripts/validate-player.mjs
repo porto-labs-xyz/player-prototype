@@ -160,11 +160,11 @@ assert.equal(JSON.parse(october.storage.get('porto-reformat-v2')).variations[1].
 action(october,'publish',childId);
 assert.equal(JSON.parse(october.storage.get('porto-reformat-v2')).variations[1].published,true);
 const octoberReload=session(Object.fromEntries(october.storage),{october:true});
-assert.match(octoberReload.run("PortoOctober.view('you')"),/Reformat \/ Slow drift/);
+assert.match(octoberReload.run("PortoOctober.view('you')"),/Reformat\/007/);
 action(octoberReload,'feed-filter','following');
 assert.match(octoberReload.run("PortoOctober.view('feed')"),/Find your people/);
 action(octoberReload,'follow','luna');
-assert.match(octoberReload.run("PortoOctober.view('feed')"),/Reformat \/ Dreamy/);
+assert.match(octoberReload.run("PortoOctober.view('feed')"),/Reformat\/002/);
 action(octoberReload,'save','original');
 assert.match(octoberReload.run("PortoOctober.view('you')"),/Saved versions/);
 action(octoberReload,'budget-cap');
@@ -204,3 +204,25 @@ assert.equal(JSON.parse(speechRequest.storage.get('porto-reformat-v2')).variatio
 assert.equal(speechRequest.storage.get('porto-october-v1'),'{'+'"variations":[]}');
 assert(speechRequest.run("PortoOctober.createVariation('Slow it down and remove the guitar').error"));
 console.log('PASS: punctuation-tolerant spoken requests, unsupported transformation rejection and earlier walkthrough data preservation.');
+
+// Edition identities survive old-state migration and repeated edits of the same preset.
+const legacyVersions={variations:[{id:'you-old',preset:'dreamy',parent:'original',creator:'you',published:true},{id:'you-child',preset:'dreamy',parent:'you-old',creator:'you',published:false}],follows:[],saved:['you-old']};
+const editions=session({'porto-reformat-v2':JSON.stringify(legacyVersions)},{october:true});
+assert.equal(editions.run("PortoOctober.title('luna-dreamy')"),'Reformat/002');
+assert.equal(editions.run("PortoOctober.title('you-old')"),'Reformat/006');
+assert.equal(editions.run("PortoOctober.title('you-child')"),'Reformat/007');
+const oldCover=editions.run("PortoOctober.artwork('you-old')");
+submit(editions,'Make it dreamy.');
+const editionState=JSON.parse(editions.storage.get('porto-reformat-v2'));
+assert.deepEqual(editionState.variations.map(v=>v.number),[6,7,8]);
+const lastVersion=editionState.variations[2].id;
+assert.notEqual(editions.run(`PortoOctober.artwork('${lastVersion}')`),oldCover);
+assert.match(editions.run("PortoOctober.artwork('luna-dreamy')"),/@luna.wav/);
+assert.match(editions.run("PortoOctober.view('search')"),/Dreamy · @luna.wav/);
+const reloadedEditions=session(Object.fromEntries(editions.storage),{october:true});
+assert.equal(reloadedEditions.run(`PortoOctober.title('${lastVersion}')`),'Reformat/008');
+assert.equal(reloadedEditions.run("PortoOctober.artwork('you-old')"),oldCover);
+action(reloadedEditions,'play','luna-dreamy');
+assert.equal(reloadedEditions.elements.get('#mini-title').textContent,'Reformat/002');
+assert.equal(reloadedEditions.elements.get('#oct-mini-stamp').textContent,'@luna.wav');
+console.log('PASS: stable numbered editions, old drafts migrated, per-edition artwork, creator stamps, player identity and mood search metadata.');
