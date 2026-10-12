@@ -163,11 +163,11 @@ assert.equal(JSON.parse(october.storage.get('porto-reformat-v2')).variations[1].
 action(october,'publish',childId);
 assert.equal(JSON.parse(october.storage.get('porto-reformat-v2')).variations[1].published,true);
 const octoberReload=session(Object.fromEntries(october.storage),{october:true});
-assert.match(octoberReload.run("PortoOctober.view('you')"),/Reformat\/007/);
+assert.match(octoberReload.run("PortoOctober.view('you')"),/Untitled 007/);
 action(octoberReload,'feed-filter','following');
 assert.match(octoberReload.run("PortoOctober.view('feed')"),/Find your people/);
 action(octoberReload,'follow','luna');
-assert.match(octoberReload.run("PortoOctober.view('feed')"),/Reformat\/002/);
+assert.match(octoberReload.run("PortoOctober.view('feed')"),/Velvet Afterhours/);
 action(octoberReload,'save','original');
 assert.match(octoberReload.run("PortoOctober.view('you')"),/Saved versions/);
 action(octoberReload,'budget-cap');
@@ -211,9 +211,9 @@ console.log('PASS: punctuation-tolerant spoken requests, unsupported transformat
 // Edition identities survive old-state migration and repeated edits of the same preset.
 const legacyVersions={variations:[{id:'you-old',preset:'dreamy',parent:'original',creator:'you',published:true},{id:'you-child',preset:'dreamy',parent:'you-old',creator:'you',published:false}],follows:[],saved:['you-old']};
 const editions=session({'porto-reformat-v2':JSON.stringify(legacyVersions)},{october:true});
-assert.equal(editions.run("PortoOctober.title('luna-dreamy')"),'Reformat/002');
-assert.equal(editions.run("PortoOctober.title('you-old')"),'Reformat/006');
-assert.equal(editions.run("PortoOctober.title('you-child')"),'Reformat/007');
+assert.equal(editions.run("PortoOctober.title('luna-dreamy')"),'@luna.wav / Velvet Afterhours');
+assert.equal(editions.run("PortoOctober.title('you-old')"),'@you / Untitled 006');
+assert.equal(editions.run("PortoOctober.title('you-child')"),'@you / Untitled 007');
 const oldCover=editions.run("PortoOctober.artwork('you-old')");
 submit(editions,'Make it dreamy.');
 const editionState=JSON.parse(editions.storage.get('porto-reformat-v2'));
@@ -223,10 +223,10 @@ assert.notEqual(editions.run(`PortoOctober.artwork('${lastVersion}')`),oldCover)
 assert.match(editions.run("PortoOctober.artwork('luna-dreamy')"),/@luna.wav/);
 assert.match(editions.run("PortoOctober.view('search')"),/Dreamy · @luna.wav/);
 const reloadedEditions=session(Object.fromEntries(editions.storage),{october:true});
-assert.equal(reloadedEditions.run(`PortoOctober.title('${lastVersion}')`),'Reformat/008');
+assert.equal(reloadedEditions.run(`PortoOctober.title('${lastVersion}')`),'@you / Untitled 008');
 assert.equal(reloadedEditions.run("PortoOctober.artwork('you-old')"),oldCover);
 action(reloadedEditions,'play','luna-dreamy');
-assert.equal(reloadedEditions.elements.get('#mini-title').textContent,'Reformat/002');
+assert.equal(reloadedEditions.elements.get('#mini-title').textContent,'@luna.wav / Velvet Afterhours');
 assert.equal(reloadedEditions.elements.get('#oct-mini-stamp').textContent,'@luna.wav');
 console.log('PASS: stable numbered editions, old drafts migrated, per-edition artwork, creator stamps, player identity and mood search metadata.');
 
@@ -251,7 +251,7 @@ const newCommunityState=JSON.parse(community.storage.get('porto-reformat-v2'));
 const juneVersion=newCommunityState.variations[0];
 assert.equal(juneVersion.source,'dream-culture');assert.equal(juneVersion.number,5);
 assert.equal(juneVersion.parent,'original-dream-culture');
-assert.equal(community.run(`PortoOctober.title('${juneVersion.id}')`),'Dream Culture/005');
+assert.equal(community.run(`PortoOctober.title('${juneVersion.id}')`),'@you / Untitled 005');
 assert.match(community.run(`PortoOctober.artwork('${juneVersion.id}')`),/borrowed-sun.webp/);
 assert.doesNotMatch(community.run(`PortoOctober.artwork('${juneVersion.id}')`),/sugar-circuit.webp/);
 const reloadCommunity=session(Object.fromEntries(community.storage),{october:true});
@@ -266,18 +266,18 @@ assert.equal(reloadCommunity.elements.get('#audio').src,'assets/borrowed-sun-a-1
 assert.equal(reloadCommunity.run('playing'),true);
 action(reloadCommunity,'genre','Rock');
 const rockFeed=reloadCommunity.run("PortoOctober.view('home')");
-assert.match(rockFeed,/Exhilarate\/002/);assert.doesNotMatch(rockFeed,/Dream Culture\/002/);
+assert.match(rockFeed,/Paper Satellites/);assert.doesNotMatch(rockFeed,/Window Seat/);
 action(reloadCommunity,'genre','all');
 action(reloadCommunity,'feed-filter','following');
 assert.equal((reloadCommunity.run("PortoOctober.view('feed')").match(/class="oct-post"/g)||[]).length,0);
 action(reloadCommunity,'follow','noor');
-assert.match(reloadCommunity.run("PortoOctober.view('feed')"),/Dream Culture\/002/);
+assert.match(reloadCommunity.run("PortoOctober.view('feed')"),/Window Seat/);
 console.log('PASS: 8 source tracks, 25 seeded posts, distinct playable audio, measured waveforms, source artwork, per-track numbering, migration, lineage, filters and original access after budget cap.');
 
 // A genealogy contains siblings, descendants and local drafts, never another song.
 const dna=session({}, {october:true});
 let family=dna.run("PortoOctober.view('variation/luna-dreamy')");
-for(const title of ['Reformat/002','Reformat/003','Reformat/004','Reformat/005'])assert(family.includes(title));
+for(const title of ['@luna.wav / Velvet Afterhours','@kaiwaves / Neon Detour','@milo.fm / Half Speed Heart','@sora.loop / Clouds Below Us'])assert(family.includes(title));
 assert.equal((family.match(/class="oct-gene-node /g)||[]).length,5);
 assert(!family.includes('Dream Culture/'));
 assert.doesNotMatch(dna.run("PortoOctober.view('home')"),/Your feed\./);
@@ -348,8 +348,27 @@ assert.doesNotMatch(family,/gene-sphere|radialGradient/);
 action(dna,'track-details','sora-dreamslow');
 assert.equal(dna.elements.get('#dialog').open,true);
 const trackDetail=dna.elements.get('#dialog-content').innerHTML;
-for(const detail of ['Reformat/005','@sora.loop','Reformat/002','Royalties · Demo','data-oct="play"','data-oct="refine"'])assert(trackDetail.includes(detail));
+for(const detail of ['@sora.loop / Clouds Below Us','@sora.loop','@luna.wav / Velvet Afterhours','Royalties · Demo','data-oct="play"','data-oct="refine"'])assert(trackDetail.includes(detail));
 action(dna,'refine','sora-dreamslow');
 assert.equal(dna.elements.get('#dialog').open,false);assert.equal(dna.elements.get('#oct-voice-sheet').open,true);
 assert.match(dna.elements.get('#oct-voice-sheet').innerHTML,/Co-create with Kiki Static/);
 console.log('PASS: circular version artwork, node detail card, source lineage and co-create handoff.');
+
+// User titles persist without changing identity, lineage, settings or artwork treatment.
+const named=session({}, {october:true});submit(named,'Make it dreamy.');
+const untitled=JSON.parse(named.storage.get('porto-reformat-v2')).variations[0];
+assert.equal(named.elements.get('#dialog').open,true);
+assert.match(named.elements.get('#dialog-content').innerHTML,/oct-name-form/);
+const nameSubmit=value=>{named.elements.get('#oct-version-title').value=value;named.documentEvents.submit.forEach(fn=>fn({target:{id:'oct-name-form',dataset:{id:untitled.id}},preventDefault(){}}));};
+nameSubmit('   ');assert.equal(named.elements.get('#dialog').open,true);
+nameSubmit('  Night <b>Drive</b> & "Glow"  ');
+let savedName=JSON.parse(named.storage.get('porto-reformat-v2')).variations[0];
+assert.equal(savedName.userTitle,'Night <b>Drive</b> & "Glow"');
+assert.equal(savedName.id,untitled.id);assert.equal(savedName.parent,untitled.parent);assert.deepEqual(savedName.settings,untitled.settings);
+const namedReload=session(Object.fromEntries(named.storage),{october:true});
+assert.equal(namedReload.run(`PortoOctober.title('${untitled.id}')`),'@you / Night <b>Drive</b> & "Glow"');
+for(const route of ['variation/'+untitled.id,'studio/'+untitled.id,'search','you']){const html=namedReload.run(`PortoOctober.view('${route}')`);assert(!html.includes('Night <b>Drive</b>'));}
+action(named,'play',untitled.id);action(named,'rename',untitled.id);nameSubmit('Velvet Morning');
+assert.equal(named.elements.get('#mini-title').textContent,'@you / Velvet Morning');
+assert.equal(JSON.parse(named.storage.get('porto-reformat-v2')).variations.length,1);
+console.log('PASS: title entry, rename, reload, player sync, HTML escaping and unchanged lineage.');
