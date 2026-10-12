@@ -1,4 +1,4 @@
-/* Tone.js effects for the shared media element. Created only after explicit Play. */
+/* Tone.js renders effects before playback. The media element stays native. */
 const PortoWarp = (() => {
   const defaults={speed:1,pitch:0,tone:20000,grit:0,echo:0,reverse:0,chop:0,crush:0};
   const limits={speed:[.65,1.4],pitch:[-12,12],tone:[300,20000],grit:[0,.8],echo:[0,.65],reverse:[0,1],chop:[0,1],crush:[0,1]};
@@ -12,7 +12,7 @@ const PortoWarp = (() => {
     slow:{speed:.8,pitch:-4,tone:12000,grit:.05,echo:.08},
     dreamslow:{speed:.8,pitch:3,tone:5000,grit:.08,echo:.4}
   };
-  let media,source,chain={},chainKey='',gate,dry,wet,meter,applied={...defaults},active=false,bypassed=false;
+  let media,renderQueue=Promise.resolve();
   const available=()=>typeof Tone!=='undefined';
   function sanitize(value={}) {
     return Object.fromEntries(Object.entries(limits).map(([key,[min,max]])=>[key,Number.isFinite(value[key])?Math.min(max,Math.max(min,value[key])):defaults[key]]));
@@ -42,32 +42,6 @@ const PortoWarp = (() => {
     const preset=wild.length>1?'custom':wild[0]|| (seen.includes('dreamy')&&seen.includes('slow')?'dreamslow':seen.includes('night')?'night':seen.includes('dreamy')?'dreamy':seen.includes('slow')?'slow':'custom');
     return {settings:sanitize(settings),preset};
   }
-  function apply(settings,enabled=true) {
-    applied=sanitize(settings);active=enabled;
-    if(!media)return;
-    const values=enabled&&!bypassed?applied:defaults;
-    media.preservesPitch=true;media.playbackRate=values.speed;
-    const key=JSON.stringify([enabled&&!bypassed,values]);
-    if(key!==chainKey){
-      wet.disconnect();
-      for(const node of Object.values(chain))node.dispose();
-      chain={};chainKey=key;
-      if(enabled&&!bypassed){
-        if(values.pitch)chain.pitch=new Tone.PitchShift({pitch:values.pitch,windowSize:.1,wet:1});
-        if(values.tone<20000)chain.filter=new Tone.Filter(values.tone,'lowpass');
-        if(values.grit)chain.grit=new Tone.Distortion({distortion:values.grit,wet:.65});
-        if(values.crush)chain.crusher=new Tone.BitCrusher({bits:4,wet:values.crush});
-        if(values.chop)chain.tremolo=new Tone.Tremolo({frequency:9,depth:1,type:'sine',wet:values.chop*.45}).start();
-        if(values.echo)chain.echo=new Tone.FeedbackDelay({delayTime:.23,feedback:.25,wet:values.echo});
-        chain.limiter=new Tone.Limiter(-3);
-        wet.chain(...Object.values(chain),gate);
-      }
-      media.dataset.audioProcessors=Object.keys(chain).join(',');
-    }
-    dry.gain.value=enabled&&!bypassed?0:1;wet.gain.value=enabled&&!bypassed?1:0;
-    media.dataset.warp=enabled&&!bypassed?'live':'bypass';
-    media.dataset.warpSettings=JSON.stringify(values);
-  }
   // Keep rendered sources in a small cache; normal transport still uses the media element.
   const rendered=new Map();
   function chopSamples(input,sampleRate){
@@ -86,61 +60,74 @@ const PortoWarp = (() => {
     for(let i=0,at=44;i<buffer.length;i++)for(let c=0;c<channels;c++,at+=2){const value=Math.max(-1,Math.min(1,data[c][i]));view.setInt16(at,value*(value<0?32768:32767),true);}
     return bytes;
   }
-  async function editedSource(url,values){
-    const key=url+'|'+Number(values.reverse>.5)+'|'+Number(values.chop>.5);
-    if(rendered.has(key))return rendered.get(key);
-    const buffer=await Tone.ToneAudioBuffer.fromUrl(url);
+  function crushSamples(input,amount){
+    const output=new Float32Array(input.length),step=1/8;
+    for(let i=0;i<input.length;i++)output[i]=input[i]*(1-amount)+Math.round(input[i]/step)*step*amount;
+    return output;
+  }
+  async function renderVersion(url,values,isCurrent){
+    if(!isCurrent())return null;
+    const decoded=await Tone.ToneAudioBuffer.fromUrl(url),nodes=[];
+    let renderedBuffer,offlineContext;
     try{
-      buffer.reverse=values.reverse>.5;
-      const raw=buffer.get();
-      if(values.chop>.5)for(let c=0;c<raw.numberOfChannels;c++)raw.copyToChannel(chopSamples(raw.getChannelData(c),raw.sampleRate),c);
-      const result=URL.createObjectURL(new Blob([wavBytes(raw)],{type:'audio/wav'}));
+      if(!isCurrent())return null;
+      decoded.reverse=values.reverse>.5;
+      const raw=decoded.get();
+      for(let c=0;c<raw.numberOfChannels;c++){
+        let samples=raw.getChannelData(c);
+        if(values.chop>.5)samples=chopSamples(samples,raw.sampleRate);
+        if(values.crush)samples=crushSamples(samples,values.crush);
+        if(samples!==raw.getChannelData(c))raw.copyToChannel(samples,c);
+      }
+      renderedBuffer=await Tone.Offline(context=>{
+        offlineContext=context;
+        const player=new Tone.Player({url:raw,fadeIn:.008,fadeOut:.008});nodes.push(player);
+        if(values.pitch)nodes.push(new Tone.PitchShift({pitch:values.pitch,windowSize:.1,wet:1}));
+        if(values.tone<20000)nodes.push(new Tone.Filter(values.tone,'lowpass'));
+        if(values.grit)nodes.push(new Tone.Distortion({distortion:values.grit,wet:.65}));
+        if(values.chop)nodes.push(new Tone.Tremolo({frequency:9,depth:1,type:'sine',wet:values.chop*.45}).start(0));
+        if(values.echo)nodes.push(new Tone.FeedbackDelay({delayTime:.23,feedback:.25,wet:values.echo}));
+        const limiter=new Tone.Limiter(-3);nodes.push(limiter);
+        player.chain(...nodes.slice(1));limiter.toDestination();player.start(0).stop(raw.duration);
+      },raw.duration,raw.numberOfChannels,raw.sampleRate);
+      if(!isCurrent())return null;
+      return URL.createObjectURL(new Blob([wavBytes(renderedBuffer.get())],{type:'audio/wav'}));
+    }finally{
+      nodes.forEach(node=>node.dispose());renderedBuffer?.dispose();decoded.dispose();offlineContext?.dispose();
+    }
+  }
+  async function editedSource(url,values,isCurrent){
+    const key=url+'|'+JSON.stringify(values);
+    const job=renderQueue.then(async()=>{
+      if(!isCurrent())return null;
+      if(rendered.has(key))return rendered.get(key);
+      const result=await renderVersion(url,values,isCurrent);
+      if(!result)return null;
       rendered.set(key,result);
       while(rendered.size>2){const oldest=[...rendered.keys()].find(k=>rendered.get(k)!==media?.src&&rendered.get(k)!==result);if(!oldest)break;URL.revokeObjectURL(rendered.get(oldest));rendered.delete(oldest);}
       return result;
-    }finally{buffer.dispose();}
+    });
+    renderQueue=job.catch(()=>{});return job;
   }
   async function prepare(element,settings,isCurrent=()=>true) {
-    if(!available())return false;
-    // Originals use native playback until an effect actually needs Web Audio.
-    if(!gate&&!settings){
-      element.preservesPitch=true;element.playbackRate=1;
-      element.dataset.warp='native';element.dataset.audioProcessors='';
-      element.dataset.warpSettings=JSON.stringify(defaults);return true;
-    }
-    if(!gate)Tone.setContext(new Tone.Context({latencyHint:'playback',lookAhead:.15}),true);
-    // Resume within the user gesture, before awaiting any work.
-    const started=Tone.start();
-    if(!gate){
-      media=element;
-      gate=new Tone.Gain(0).toDestination();dry=new Tone.Gain(1);wet=new Tone.Gain(0);
-      meter=new Tone.Meter({normalRange:true});gate.connect(meter);
-      media.addEventListener('timeupdate',()=>{media.dataset.outputLevel=String(meter.getValue());});
-      dry.connect(gate);
-      media.dataset.audioLatency='playback';
-      source=Tone.getContext().rawContext.createMediaElementSource(media);
-      Tone.connect(source,dry);Tone.connect(source,wet);
-      media.addEventListener('playing',()=>{if(!media.paused)gate.gain.rampTo(1,.02);});
-      for(const event of ['pause','ended','emptied'])media.addEventListener(event,()=>{if(event!=='pause'||media.paused)gate.gain.value=0;});
-    }
-    await started;
-    element.dataset.audioContextState=Tone.getContext().state;
-    if(!isCurrent())return false;
+    if(!available()||!isCurrent())return false;
+    media=element;
     const values=sanitize(settings||defaults),original=element.dataset.originalSource||element.src;
-    const key=original+'|'+Number(values.reverse>.5)+'|'+Number(values.chop>.5);
+    const key=original+'|'+JSON.stringify(values);
     if(element.dataset.preparedKey!==key){
       element.dataset.preparingAudio='true';
       try{
-        const next=values.reverse>.5||values.chop>.5?await editedSource(original,values):original;
-        if(!isCurrent())return false;
+        const next=settings?await editedSource(original,values,isCurrent):original;
+        if(!isCurrent()||!next)return false;
         if(element.src!==next){const position=element.currentTime;element.src=next;element.load();element.currentTime=position;}
         element.dataset.preparedKey=key;
       }finally{if(isCurrent())element.dataset.preparingAudio='false';}
     }
-    apply(settings||defaults,!!settings);
+    element.preservesPitch=true;element.playbackRate=values.speed;
+    element.dataset.warp=settings?'rendered':'native';
+    element.dataset.audioProcessors='';element.dataset.audioPlayback='native';
+    element.dataset.warpSettings=JSON.stringify(values);
     return true;
   }
-  function bypass(value){bypassed=value;apply(applied,active);}
-  function stop(){if(gate)gate.gain.value=0;}
-  return {available,chopSamples,wavBytes,sanitize,parseRequest,defaults,presets,prepare,apply,bypass,stop};
+  return {available,chopSamples,crushSamples,wavBytes,sanitize,parseRequest,defaults,presets,prepare};
 })();
