@@ -162,7 +162,7 @@ const PortoOctober = (() => {
     catch {storageOK=false;toast('Updated for this visit only. Browser storage is unavailable.');return false;}
   }
   const sound = id => sourceFor(id).audio[typeof PortoWarp!=='undefined'&&PortoWarp.available()?'original':presets[find(id)?.preset]?.file||'original'];
-  const wave = (small=false,id=selected) => `<span class="oct-wave ${small?'small':''}" ${small?'':`data-wave="${esc(id)}"`} aria-hidden="true">${(small?[.25,.55,.9,.4,.75,1,.55,.8,.3]:sound(id).peaks).map((p,i)=>`<i style="--h:${Math.max(8,Math.round(p*100))}%;--delay:${i*.065}s"></i>`).join('')}</span>`;
+  const wave = (small=false,id=selected) => `<span class="oct-wave ${small?'small':''}" ${small?'':`data-wave="${esc(id)}"`} ${small?'aria-hidden="true"':''}>${small?'':`<input class="oct-wave-seek" type="range" min="0" max="1000" step="1" value="0" data-wave-seek="${esc(id)}" aria-label="Seek ${esc(title(id))}">`}${(small?[.25,.55,.9,.4,.75,1,.55,.8,.3]:sound(id).peaks).map((p,i)=>`<i style="--h:${Math.max(8,Math.round(p*100))}%;--delay:${i*.065}s"></i>`).join('')}</span>`;
   const avatarSrc = id => `assets/${isOriginal(id)?sourceFor(id).art:id==='you'?'creators/you.svg':`creators/${id}${['luna','kai','milo','sora'].includes(id)?'':'-v2'}.${['luna','kai','milo','sora'].includes(id)?'png':'webp'}`}`;
   const avatar = id => `<img class="oct-avatar" loading="lazy" src="${avatarSrc(id)}" alt="">`;
   let voice, voiceRoute='', sheetTrigger=null;
@@ -204,14 +204,23 @@ const PortoOctober = (() => {
     if(sourceLabel)sourceLabel.textContent=(title(selected)+(isOriginal(selected)?' · Original':''));
     document.querySelectorAll('[data-oct="play"]').forEach(b=>{
       const active=current.concept&&current.variationId===b.dataset.id;
-      b.innerHTML=(active&&playing?pauseIcon:playIcon)+(b.classList.contains('oct-round')?'':active&&playing?' Pause':' Play');
-      b.setAttribute('aria-label',`${active&&playing?'Pause':'Play'} ${title(b.dataset.id)}`);
-      b.setAttribute('aria-pressed',String(active&&playing));
+      const engaged=active&&(playing||preparingPlayback);
+      const controlState=engaged?'pause':'play';
+      if(b.dataset.playState!==controlState){
+        b.innerHTML=(engaged?pauseIcon:playIcon)+(b.classList.contains('oct-round')?'':engaged?' Pause':' Play');
+        b.dataset.playState=controlState;
+      }
+      b.setAttribute('aria-label',`${active&&preparingPlayback?'Cancel loading':engaged?'Pause':'Play'} ${title(b.dataset.id)}`);
+      b.setAttribute('aria-pressed',String(engaged));
+      b.setAttribute('aria-busy',String(active&&preparingPlayback));
     });
     document.querySelectorAll('[data-track]').forEach(el=>el.classList.toggle('is-current',current.concept&&current.variationId===el.dataset.track));
     document.querySelectorAll('[data-wave]').forEach(el=>{
       const active=current.concept&&current.variationId===el.dataset.wave;
-      const progress=active?audio.currentTime/(audio.duration||sound(el.dataset.wave).duration):0;
+      const total=active?trackDuration():sound(el.dataset.wave).duration;
+      const position=active?(pendingSeek??audio.currentTime):0,progress=total?position/total:0;
+      const scrubber=el.querySelector('[data-wave-seek]');
+      if(scrubber){scrubber.value=String(Math.round(progress*1000));scrubber.setAttribute('aria-valuetext',`${fmt(position)} of ${fmt(total)}`);}
       el.querySelectorAll('i').forEach((bar,i,bars)=>bar.classList.toggle('heard',i/bars.length<progress));
     });
   }
@@ -324,11 +333,25 @@ const PortoOctober = (() => {
       modal(`<p class="oct-kicker">BUDGET REACHED · DEMO</p><h2>Originals play on.</h2><p>Your example listening budget is used. Try a top-up or monthly reset to resume variations. Nothing will be charged.</p><a class="primary" href="#budget">Manage demo budget</a>`);return false;
     }return true;
   }
+  function selectTrack(id) {
+    if(!valid(id))return false;
+    const r=demoRecord(id);if(!canPlay(r))return false;
+    voice?.cancel();selected=id;
+    if(!current.concept||current.variationId!==id){pause();current=r;side=0;track=0;source();}
+    return true;
+  }
   function play(id) {
-    if(!valid(id))return;
-    voice?.cancel();const r=demoRecord(id);if(!canPlay(r))return;
-    selected=id;if(current.concept&&current.variationId===id){toggle();return;}
-    pause();current=r;side=0;track=0;source();resume();selected=id;
+    const same=current.concept&&current.variationId===id;
+    if(!selectTrack(id))return;
+    if(same)return toggle();
+    return resume();
+  }
+  function scrub(id,fraction) {
+    const value=Number(fraction);if(!Number.isFinite(value))return;
+    const same=current.concept&&current.variationId===id;
+    if(!selectTrack(id))return;
+    seekTo(Math.max(0,Math.min(1,value))*trackDuration());syncPlayback();
+    if(!same)return resume();
   }
   function createVariation(text) {
     if(!text.trim())return {error:'Add a request first.'};
@@ -410,7 +433,13 @@ const PortoOctober = (() => {
       if(result.error){document.querySelector('#oct-request-status').textContent=result.error;return;}
       notice='Your version is ready. Play, refine or share it.';prompt='';closeSheet();renameVersion(result.variation.id);
     });
-    document.addEventListener('input',e=>{if(e.target.id==='oct-prompt'){voice.cancel();prompt=e.target.value;}if(e.target.id==='oct-search'){searchText=e.target.value;document.querySelector('#oct-search-results').innerHTML=searchResults();}});
+    document.addEventListener('pointerdown',e=>{
+      const input=e.target.closest('[data-wave-seek]');
+      if(!input||e.button!==0||e.isPrimary===false)return;
+      const bounds=input.getBoundingClientRect();
+      if(bounds.width)scrub(input.dataset.waveSeek,(e.clientX-bounds.left)/bounds.width);
+    });
+    document.addEventListener('input',e=>{if(e.target.dataset?.waveSeek){scrub(e.target.dataset.waveSeek,Number(e.target.value)/1000);return;}if(e.target.id==='oct-prompt'){voice.cancel();prompt=e.target.value;}if(e.target.id==='oct-search'){searchText=e.target.value;document.querySelector('#oct-search-results').innerHTML=searchResults();}});
     document.addEventListener('click',e=>{
       const link=e.target.closest('a[href^="#"]');
       if(link?.getAttribute('href')==='#studio'){e.preventDefault();openSheet(false,link);return;}

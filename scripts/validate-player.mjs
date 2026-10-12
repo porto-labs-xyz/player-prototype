@@ -289,7 +289,8 @@ assert.equal(custom.parent,'luna-dreamy');assert.equal(custom.settings.pitch,7);
 assert.equal(custom.number,10);
 const dnaReload=session(Object.fromEntries(dna.storage),{october:true});
 assert.equal(JSON.parse(dnaReload.storage.get('porto-reformat-v2')).variations[0].settings.pitch,7);
-assert.doesNotMatch(dnaReload.run(`PortoOctober.view('variation/${custom.id}')`),/type="range"|data-warp/);
+assert.doesNotMatch(dnaReload.run(`PortoOctober.view('variation/${custom.id}')`),/data-warp/);
+assert(dnaReload.run(`PortoOctober.view('variation/${custom.id}')`).match(/<input[^>]+type="range"[^>]+>/g).every(input=>input.includes('data-wave-seek=')));
 assert.equal((dnaReload.run("PortoOctober.view('original')").match(/class="oct-gene-node /g)||[]).length,10);
 assert.equal(dnaReload.run("PortoWarp.sanitize({speed:99,pitch:-200,echo:Infinity}).speed"),1.4);
 assert.equal(dnaReload.run("PortoWarp.sanitize({pitch:-200}).pitch"),-12);
@@ -438,3 +439,47 @@ assert.equal(sample[9],1);assert.equal(sample[27],1);assert.equal(sample[45],4);
 const pcm=community.run('PortoWarp.wavBytes({numberOfChannels:1,length:3,sampleRate:44100,getChannelData:()=>new Float32Array([-1,0,1])})');
 const wav=new DataView(pcm);assert.equal(wav.getUint32(24,true),44100);assert.equal(wav.getInt16(44,true),-32768);assert.equal(wav.getInt16(48,true),32767);
 console.log('PASS: 32 wild seeded variations, compound prompts, sample slicing, PCM encoding and per-track local comments with safe rendering.');
+
+// Track-local transport must win over both current playback and delayed edits.
+const switching=session({}, {october:true});
+const sa=switching.elements.get('#audio');sa.readyState=1;sa.duration=219;
+const scrub=(id,value)=>switching.documentEvents.input.forEach(fn=>fn({target:{dataset:{waveSeek:id},value:String(value)}}));
+action(switching,'play','luna-dreamy');await new Promise(setImmediate);
+assert.equal(switching.run('current.variationId'),'luna-dreamy');assert.equal(sa.paused,false);
+action(switching,'play','kai-night');await new Promise(setImmediate);
+assert.equal(switching.run('current.variationId'),'kai-night');assert.equal(sa.paused,false);
+action(switching,'play','kai-night');assert.equal(sa.paused,true);
+scrub('kai-night',500);assert.equal(sa.currentTime,109.5);assert.equal(sa.paused,true);
+scrub('luna-dreamy',250);await new Promise(setImmediate);
+assert.equal(switching.run('current.variationId'),'luna-dreamy');assert.equal(sa.currentTime,54.75);assert.equal(sa.paused,false);
+// A queued old pause event must not reset the new playing track's controls.
+sa.events.pause();assert.equal(switching.run('playing'),true);
+switching.run('pause()');sa.events.playing();assert.equal(switching.run('playing'),false);
+switching.run('PortoWarp.available=()=>true; var preparations=[]; PortoOctober.prepareAudio=()=>new Promise(resolve=>preparations.push(resolve))');
+action(switching,'play','reformat-wild-reverse');assert.equal(switching.run('preparingPlayback'),true);
+const before=sa.playCalls;
+action(switching,'play','reformat-wild-reverse');assert.equal(switching.run('preparingPlayback'),false);
+switching.run('preparations.shift()()');await new Promise(setImmediate);assert.equal(sa.playCalls,before);
+action(switching,'play','reformat-wild-chopped');
+scrub('original',700);assert.equal(switching.run('current.variationId'),'original');
+switching.run('preparations.shift()()');await new Promise(setImmediate);assert.equal(sa.playCalls,before);
+switching.run('preparations.shift()()');await new Promise(setImmediate);
+assert.equal(sa.paused,false);assert(Math.abs(sa.currentTime-153.3)<.001);
+console.log('PASS: track switching, paused waveform seeking, waveform auto-selection, stale media events and rapid switching/cancel during preparation.');
+
+const pointer=switching.documentEvents.pointerdown.at(-1);
+pointer({button:0,isPrimary:true,clientX:10,target:{closest:()=>({dataset:{waveSeek:'luna-dreamy'},getBoundingClientRect:()=>({left:10,width:100})})}});
+assert.equal(switching.run('current.variationId'),'luna-dreamy');assert.equal(sa.currentTime,0);
+switching.run('preparations.shift()()');await new Promise(setImmediate);assert.equal(sa.paused,false);
+console.log('PASS: touching the zero position selects a different track even without a range value change.');
+
+const stableButtons=session({}, {october:true});
+stableButtons.run(`var buttonWrites=0;var buttonMarkup='';var playButton={dataset:{id:'original'},classList:{contains:()=>true},setAttribute(){},get innerHTML(){return buttonMarkup},set innerHTML(value){buttonWrites++;buttonMarkup=value}};document.querySelectorAll=selector=>selector==='[data-oct="play"]'?[playButton]:[];PortoOctober.sync()`);
+const initialWrites=stableButtons.run('buttonWrites');
+for(let i=0;i<5;i++)stableButtons.elements.get('#audio').events.timeupdate();
+assert.equal(stableButtons.run('buttonWrites'),initialWrites);
+action(stableButtons,'play','original');await new Promise(setImmediate);
+const playingWrites=stableButtons.run('buttonWrites');assert(playingWrites>initialWrites);
+for(let i=0;i<5;i++)stableButtons.elements.get('#audio').events.timeupdate();
+assert.equal(stableButtons.run('buttonWrites'),playingWrites);
+console.log('PASS: playback progress preserves play-button contents and only state changes replace icons.');

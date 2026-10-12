@@ -181,3 +181,9 @@ The fixed player uses a 44px-high seek target with a thin violet progress line a
 ## Experimental versions and discussion, 12 October 2026
 
 Populate the feed with reverse, underwater, chopped and distorted versions, keeping creator names, chosen titles, mood tags and circular lineage artwork. Add mirrored double exposure for reverse, liquid displacement for underwater, hard offset slices for chopped and burnt contrast for distorted covers. Creator stamps and controls remain sharp. Place comments below lineage and above the royalty summary. Use small creator photos, handles, short informal replies and a simple local Post field. Feed cards show comment counts and two preview replies. Label fictional conversation and local-only comments without adding sound-editor sliders.
+
+## Track controls and waveform seeking, 12 October 2026
+
+Every track-local play button selects that track before starting playback. Only the current track toggles pause/resume; a loading track exposes Cancel loading consistently on its card and the fixed player. Switching or stopping invalidates pending audio preparation, and delayed media events cannot overwrite a newer playback state. Pause immediately mutes the effects output.
+
+Waveforms in rotation cards, feed posts and track details are seek surfaces. Clicking or dragging another track's waveform selects it and starts playback at that position, including while reverse/chop audio is preparing. Scrubbing the current track preserves its playing or paused state. Native range input supplies mouse, touch and keyboard operation with a visible focus ring and a 44px minimum target; bars show the current position. These controls seek audio only. Sound transformation remains voice/text based.

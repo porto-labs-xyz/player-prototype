@@ -103,8 +103,8 @@ const PortoWarp = (() => {
       dry.connect(gate);wet.chain(chain.pitch,chain.filter,chain.grit,chain.crusher,chain.tremolo,chain.echo,chain.limiter,gate);
       source=Tone.getContext().rawContext.createMediaElementSource(media);
       Tone.connect(source,dry);Tone.connect(source,wet);
-      media.addEventListener('playing',()=>gate.gain.rampTo(1,.02));
-      for(const event of ['pause','ended','emptied'])media.addEventListener(event,()=>gate.gain.value=0);
+      media.addEventListener('playing',()=>{if(!media.paused)gate.gain.rampTo(1,.02);});
+      for(const event of ['pause','ended','emptied'])media.addEventListener(event,()=>{if(event!=='pause'||media.paused)gate.gain.value=0;});
     }
     await started;
     if(!isCurrent())return false;
