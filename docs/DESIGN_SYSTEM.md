@@ -161,3 +161,7 @@ The user rejected shaded sphere nodes. Every graph node now uses a circular crop
 ## Creator titles, 12 October 2026
 
 Variation names now use @username / chosen title, such as @luna.wav / Velvet Afterhours. This supersedes numbered source-song names as the primary variation title. After creation, show a blank Title field with Save title; local versions also expose Rename. Keep the voice/text request field empty of instructional prompts. Apply chosen names throughout the feed, player, search and genealogy; graph nodes show the creator above the chosen title. Keep Original labels, mood tags, source-song attribution and artwork stamps. Renaming must preserve stable IDs, edition numbers, artwork effects, source audio and parent lineage. Existing unnamed drafts remain Untitled NNN until their owner names them. Local identity remains @you until real accounts exist.
+
+## Compact voice dock and player boundary, 12 October 2026
+
+The sticky voice trigger shows only a waveform icon in a 48 by 44 pixel button. Retain its accessible Start voice input / Stop voice input label, listening pulse and voice-sheet behavior. The adjacent text-request action remains available. At desktop widths the left sidebar ends above the combined player and command dock, including the safe-area inset; the player paints above navigation so library content cannot cover the transport.
