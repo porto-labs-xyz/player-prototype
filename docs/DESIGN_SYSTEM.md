@@ -177,3 +177,7 @@ Tapping a track or graph node opens the detailed track page directly, supersedin
 ## Accessible playback transport
 
 The fixed player uses a 44px-high seek target with a thin violet progress line and visible thumb. Include play/pause and a square stop icon with explicit accessible labels at every breakpoint. Seeking uses the current track, independent of ownership. Place the nonmodal voice panel above the transport so it can remain in use during capture. Voice/text-only transformation excludes playback-position controls.
+
+## Experimental versions and discussion, 12 October 2026
+
+Populate the feed with reverse, underwater, chopped and distorted versions, keeping creator names, chosen titles, mood tags and circular lineage artwork. Add mirrored double exposure for reverse, liquid displacement for underwater, hard offset slices for chopped and burnt contrast for distorted covers. Creator stamps and controls remain sharp. Place comments below lineage and above the royalty summary. Use small creator photos, handles, short informal replies and a simple local Post field. Feed cards show comment counts and two preview replies. Label fictional conversation and local-only comments without adding sound-editor sliders.

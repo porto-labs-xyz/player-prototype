@@ -163,7 +163,7 @@ assert.equal(JSON.parse(october.storage.get('porto-reformat-v2')).variations[1].
 action(october,'publish',childId);
 assert.equal(JSON.parse(october.storage.get('porto-reformat-v2')).variations[1].published,true);
 const octoberReload=session(Object.fromEntries(october.storage),{october:true});
-assert.match(octoberReload.run("PortoOctober.view('you')"),/Untitled 007/);
+assert.match(octoberReload.run("PortoOctober.view('you')"),/Untitled 011/);
 action(octoberReload,'feed-filter','following');
 assert.match(octoberReload.run("PortoOctober.view('feed')"),/Find your people/);
 action(octoberReload,'follow','luna');
@@ -212,18 +212,18 @@ console.log('PASS: punctuation-tolerant spoken requests, unsupported transformat
 const legacyVersions={variations:[{id:'you-old',preset:'dreamy',parent:'original',creator:'you',published:true},{id:'you-child',preset:'dreamy',parent:'you-old',creator:'you',published:false}],follows:[],saved:['you-old']};
 const editions=session({'porto-reformat-v2':JSON.stringify(legacyVersions)},{october:true});
 assert.equal(editions.run("PortoOctober.title('luna-dreamy')"),'@luna.wav / Velvet Afterhours');
-assert.equal(editions.run("PortoOctober.title('you-old')"),'@you / Untitled 006');
-assert.equal(editions.run("PortoOctober.title('you-child')"),'@you / Untitled 007');
+assert.equal(editions.run("PortoOctober.title('you-old')"),'@you / Untitled 010');
+assert.equal(editions.run("PortoOctober.title('you-child')"),'@you / Untitled 011');
 const oldCover=editions.run("PortoOctober.artwork('you-old')");
 submit(editions,'Make it dreamy.');
 const editionState=JSON.parse(editions.storage.get('porto-reformat-v2'));
-assert.deepEqual(editionState.variations.map(v=>v.number),[6,7,8]);
+assert.deepEqual(editionState.variations.map(v=>v.number),[10,11,12]);
 const lastVersion=editionState.variations[2].id;
 assert.notEqual(editions.run(`PortoOctober.artwork('${lastVersion}')`),oldCover);
 assert.match(editions.run("PortoOctober.artwork('luna-dreamy')"),/@luna.wav/);
 assert.match(editions.run("PortoOctober.view('search')"),/Dreamy · @luna.wav/);
 const reloadedEditions=session(Object.fromEntries(editions.storage),{october:true});
-assert.equal(reloadedEditions.run(`PortoOctober.title('${lastVersion}')`),'@you / Untitled 008');
+assert.equal(reloadedEditions.run(`PortoOctober.title('${lastVersion}')`),'@you / Untitled 012');
 assert.equal(reloadedEditions.run("PortoOctober.artwork('you-old')"),oldCover);
 action(reloadedEditions,'play','luna-dreamy');
 assert.equal(reloadedEditions.elements.get('#mini-title').textContent,'@luna.wav / Velvet Afterhours');
@@ -233,7 +233,7 @@ console.log('PASS: stable numbered editions, old drafts migrated, per-edition ar
 // Multi-source versions must never borrow another track's audio, artwork or lineage.
 const community=session({}, {october:true});
 assert.match(community.run("PortoOctober.view('home')"),/In your rotation/);
-assert.equal((community.run("PortoOctober.view('feed')").match(/class="oct-post"/g)||[]).length,25);
+assert.equal((community.run("PortoOctober.view('feed')").match(/class="oct-post"/g)||[]).length,57);
 for(const [source,clips] of Object.entries(community.run('FeedAudio'))){
  for(const clip of Object.values(clips)){
   assert.equal(clip.peaks.length,80);
@@ -249,9 +249,9 @@ community.run("PortoOctober.view('original/dream-culture')");
 submit(community,'Make it dreamy');
 const newCommunityState=JSON.parse(community.storage.get('porto-reformat-v2'));
 const juneVersion=newCommunityState.variations[0];
-assert.equal(juneVersion.source,'dream-culture');assert.equal(juneVersion.number,5);
+assert.equal(juneVersion.source,'dream-culture');assert.equal(juneVersion.number,9);
 assert.equal(juneVersion.parent,'original-dream-culture');
-assert.equal(community.run(`PortoOctober.title('${juneVersion.id}')`),'@you / Untitled 005');
+assert.equal(community.run(`PortoOctober.title('${juneVersion.id}')`),'@you / Untitled 009');
 assert.match(community.run(`PortoOctober.artwork('${juneVersion.id}')`),/borrowed-sun.webp/);
 assert.doesNotMatch(community.run(`PortoOctober.artwork('${juneVersion.id}')`),/sugar-circuit.webp/);
 const reloadCommunity=session(Object.fromEntries(community.storage),{october:true});
@@ -272,13 +272,13 @@ action(reloadCommunity,'feed-filter','following');
 assert.equal((reloadCommunity.run("PortoOctober.view('feed')").match(/class="oct-post"/g)||[]).length,0);
 action(reloadCommunity,'follow','noor');
 assert.match(reloadCommunity.run("PortoOctober.view('feed')"),/Window Seat/);
-console.log('PASS: 8 source tracks, 25 seeded posts, distinct playable audio, measured waveforms, source artwork, per-track numbering, migration, lineage, filters and original access after budget cap.');
+console.log('PASS: 8 source tracks, 57 seeded posts, distinct playable audio, measured waveforms, source artwork, per-track numbering, migration, lineage, filters and original access after budget cap.');
 
 // A genealogy contains siblings, descendants and local drafts, never another song.
 const dna=session({}, {october:true});
 let family=dna.run("PortoOctober.view('variation/luna-dreamy')");
 for(const title of ['@luna.wav / Velvet Afterhours','@kaiwaves / Neon Detour','@milo.fm / Half Speed Heart','@sora.loop / Clouds Below Us'])assert(family.includes(title));
-assert.equal((family.match(/class="oct-gene-node /g)||[]).length,5);
+assert.equal((family.match(/class="oct-gene-node /g)||[]).length,9);
 assert(!family.includes('Dream Culture/'));
 assert.doesNotMatch(dna.run("PortoOctober.view('home')"),/Your feed\./);
 dna.run("PortoOctober.view('variation/luna-dreamy')");
@@ -286,11 +286,11 @@ submit(dna,'Pitch up 5 semitones.');
 let dnaState=JSON.parse(dna.storage.get('porto-reformat-v2'));
 const custom=dnaState.variations[0];
 assert.equal(custom.parent,'luna-dreamy');assert.equal(custom.settings.pitch,7);assert.equal(custom.published,false);
-assert.equal(custom.number,6);
+assert.equal(custom.number,10);
 const dnaReload=session(Object.fromEntries(dna.storage),{october:true});
 assert.equal(JSON.parse(dnaReload.storage.get('porto-reformat-v2')).variations[0].settings.pitch,7);
 assert.doesNotMatch(dnaReload.run(`PortoOctober.view('variation/${custom.id}')`),/type="range"|data-warp/);
-assert.equal((dnaReload.run("PortoOctober.view('original')").match(/class="oct-gene-node /g)||[]).length,6);
+assert.equal((dnaReload.run("PortoOctober.view('original')").match(/class="oct-gene-node /g)||[]).length,10);
 assert.equal(dnaReload.run("PortoWarp.sanitize({speed:99,pitch:-200,echo:Infinity}).speed"),1.4);
 assert.equal(dnaReload.run("PortoWarp.sanitize({pitch:-200}).pitch"),-12);
 // Count actual incremental playback once per source session. Pauses and seeks do not inflate it.
@@ -323,8 +323,8 @@ assert.equal(sheet.elements.get('#oct-voice-sheet').open,false);
 console.log('PASS: bottom voice/text sheet opens and closes, unsupported speech feedback stays in the sheet, prompt-only effects create a child and no sound sliders are rendered.');
 
 // Graph edges use real parents, and illustrative royalties stay separate from plays.
-assert.equal((family.match(/data-node=/g)||[]).length,5);
-assert.equal((family.match(/data-from=/g)||[]).length,4);
+assert.equal((family.match(/data-node=/g)||[]).length,9);
+assert.equal((family.match(/data-from=/g)||[]).length,8);
 assert.match(family,/data-from="luna-dreamy" data-to="sora-dreamslow"/);
 assert.match(family,/Royalties generated/);
 assert.match(family,/Illustrative amounts, not earned or paid/);
@@ -343,7 +343,7 @@ sheet.run("PortoOctober.view('original/dream-culture')");action(sheet,'prompt-op
 assert.match(sheet.elements.get('#oct-voice-sheet').innerHTML,/Co-create with June Arcade/);
 console.log('PASS: graph parent edges, every version, deep-family projection, independent demo royalties and source-specific co-create heading.');
 
-assert.equal((family.match(/class="oct-orbit-picture"/g)||[]).length,5);
+assert.equal((family.match(/class="oct-orbit-picture"/g)||[]).length,9);
 assert.doesNotMatch(family,/gene-sphere|radialGradient/);
 const deepTrack=session({}, {october:true});
 action(deepTrack,'track-details','sora-dreamslow');
@@ -353,7 +353,7 @@ const trackDetail=deepTrack.run("PortoOctober.view('variation/sora-dreamslow')")
 for(const detail of ['@sora.loop / Clouds Below Us','@sora.loop','@luna.wav / Velvet Afterhours','data-oct="play"','data-oct="refine"','aria-label="Track details"'])assert(trackDetail.includes(detail));
 assert(trackDetail.indexOf('oct-deep-track')<trackDetail.indexOf('oct-genealogy-first'));
 assert(trackDetail.indexOf('oct-genealogy-first')<trackDetail.indexOf('oct-royalty-summary'));
-assert.equal((family.match(/class="oct-orbit-avatar"/g)||[]).length,5);
+assert.equal((family.match(/class="oct-orbit-avatar"/g)||[]).length,9);
 for(const file of ['luna.png','kai.png','milo.png','sora.png'])assert(family.includes('assets/creators/'+file));
 for(const match of trackDetail.matchAll(/class="oct-orbit-avatar" href="([^"]+)"/g))assert(fs.existsSync(path.join(root,'dist',match[1])));
 action(deepTrack,'refine','sora-dreamslow');
@@ -411,3 +411,30 @@ talking.run('pause()');await talking.run('resume()');
 assert.equal(recognition.aborted,false);assert.equal(talkAudio.currentTime,24);
 action(talking,'close-sheet');assert.equal(talkAudio.paused,false);assert.equal(talkAudio.currentTime,24);
 console.log('PASS: queued metadata seeks, playing/paused scrubs, stop/reset, queue preservation and voice capture without interrupting playback.');
+
+// Wild presets remain request-driven and compose with inherited settings.
+for(const [request,preset] of [['reverse it','reverse'],['under water','underwater'],['chop it up','chopped'],['distorted','crushed']]){
+ const result=community.run(`PortoWarp.parseRequest(${JSON.stringify(request)})`);
+ assert.equal(result.preset,preset);assert(!result.error);
+}
+const combo=community.run("PortoWarp.parseRequest('reverse it and make it underwater and chop it up')");
+assert.equal(combo.settings.reverse,1);assert.equal(combo.settings.chop,1);assert.equal(combo.settings.tone,480);
+assert(community.run("PortoWarp.parseRequest('reverse it and remove the drums').error"));
+// Comment fixtures, local posting, escaped output, reload and per-track separation.
+const comments=session({}, {october:true});
+const thread=comments.run("PortoOctober.view('variation/reformat-wild-chopped')");
+assert.match(thread,/Track comments/);assert.match(thread,/Demo conversation/);
+comments.run("document.querySelector('#oct-comment-text').value='dope <script>alert(1)</script>'");
+for(const listener of comments.documentEvents.submit)listener({target:{id:'oct-comment-form',dataset:{id:'reformat-wild-chopped'}},preventDefault(){}});
+assert.match(comments.elements.get('#oct-comments').innerHTML,/dope &lt;script&gt;/);
+const savedComments=JSON.parse(comments.storage.get('porto-reformat-v2')).comments;
+assert.equal(savedComments['reformat-wild-chopped'].length,1);
+const commentsReload=session(Object.fromEntries(comments.storage),{october:true});
+assert.match(commentsReload.run("PortoOctober.view('variation/reformat-wild-chopped')"),/dope &lt;script&gt;/);
+assert.doesNotMatch(commentsReload.run("PortoOctober.view('variation/luna-dreamy')"),/alert\(1\)/);
+assert.equal(comments.elements.get('#audio').playCalls,0);
+const sample=community.run('PortoWarp.chopSamples(Float32Array.from({length:144},(_,i)=>Math.floor(i/18)+1),100)');
+assert.equal(sample[9],1);assert.equal(sample[27],1);assert.equal(sample[45],4);assert.equal(sample[63],2);
+const pcm=community.run('PortoWarp.wavBytes({numberOfChannels:1,length:3,sampleRate:44100,getChannelData:()=>new Float32Array([-1,0,1])})');
+const wav=new DataView(pcm);assert.equal(wav.getUint32(24,true),44100);assert.equal(wav.getInt16(44,true),-32768);assert.equal(wav.getInt16(48,true),32767);
+console.log('PASS: 32 wild seeded variations, compound prompts, sample slicing, PCM encoding and per-track local comments with safe rendering.');
