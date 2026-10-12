@@ -1,2 +1,4 @@
 .vercel
 .openai/
+dist/deployment.json
+scripts/__pycache__/

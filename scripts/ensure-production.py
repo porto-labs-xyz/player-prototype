@@ -5,12 +5,15 @@ import time
 import urllib.request
 
 
-def ensure(sha, github, trigger, sleep=time.sleep, log=print, polls=12):
+def ensure(sha, github, trigger, sleep=time.sleep, log=print, polls=12, deployed=lambda: None):
     baseline = 0
     for attempt in range(3):
         for _ in range(polls):
             if github('commits/main')['sha'] != sha:
                 log('A newer main commit superseded this deployment.')
+                return
+            if deployed() == sha:
+                log(f'Production serves verified revision {sha}.')
                 return
             statuses = github(f'commits/{sha}/statuses')
             latest = next((s for s in statuses if s['context'] == 'Vercel' and s['id'] > baseline), None)
@@ -55,7 +58,18 @@ def main():
         except Exception:
             raise RuntimeError('Vercel rejected the recovery request.') from None
 
-    ensure(os.environ['GITHUB_SHA'], github, trigger)
+    def deployed():
+        try:
+            request = urllib.request.Request(
+                f'https://porto-prototype.vercel.app/deployment.json?verify={time.time_ns()}',
+                headers={'Cache-Control': 'no-cache'},
+            )
+            with urllib.request.urlopen(request, timeout=15) as response:
+                return json.load(response).get('revision')
+        except (OSError, ValueError):
+            return None
+
+    ensure(os.environ['GITHUB_SHA'], github, trigger, deployed=deployed)
 
 
 if __name__ == '__main__':

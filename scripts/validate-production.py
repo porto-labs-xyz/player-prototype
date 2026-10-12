@@ -31,5 +31,15 @@ class RecoveryTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             production.ensure('current',github,lambda:triggered.append(1),sleep=lambda _:None,log=lambda _:None,polls=2)
         self.assertEqual(len(triggered),2)
+    def test_live_revision_succeeds_without_provider_status(self):
+        def github(path):
+            if path == 'commits/main': return {'sha':'current'}
+            self.fail('No status needed when production proves its revision')
+        production.ensure('current',github,lambda:self.fail('No retry needed'),deployed=lambda:'current')
+    def test_old_live_revision_does_not_pass(self):
+        def github(path):
+            return {'sha':'current'} if path == 'commits/main' else []
+        with self.assertRaises(RuntimeError):
+            production.ensure('current',github,lambda:None,deployed=lambda:'old',sleep=lambda _:None,log=lambda _:None,polls=1)
 
 unittest.main()
