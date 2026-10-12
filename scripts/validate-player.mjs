@@ -345,14 +345,21 @@ console.log('PASS: graph parent edges, every version, deep-family projection, in
 
 assert.equal((family.match(/class="oct-orbit-picture"/g)||[]).length,5);
 assert.doesNotMatch(family,/gene-sphere|radialGradient/);
-action(dna,'track-details','sora-dreamslow');
-assert.equal(dna.elements.get('#dialog').open,true);
-const trackDetail=dna.elements.get('#dialog-content').innerHTML;
-for(const detail of ['@sora.loop / Clouds Below Us','@sora.loop','@luna.wav / Velvet Afterhours','Royalties · Demo','data-oct="play"','data-oct="refine"'])assert(trackDetail.includes(detail));
-action(dna,'refine','sora-dreamslow');
-assert.equal(dna.elements.get('#dialog').open,false);assert.equal(dna.elements.get('#oct-voice-sheet').open,true);
-assert.match(dna.elements.get('#oct-voice-sheet').innerHTML,/Co-create with Kiki Static/);
-console.log('PASS: circular version artwork, node detail card, source lineage and co-create handoff.');
+const deepTrack=session({}, {october:true});
+action(deepTrack,'track-details','sora-dreamslow');
+assert.equal(deepTrack.run('location.hash'),'variation/sora-dreamslow');
+assert.notEqual(deepTrack.elements.get('#dialog').open,true);
+const trackDetail=deepTrack.run("PortoOctober.view('variation/sora-dreamslow')");
+for(const detail of ['@sora.loop / Clouds Below Us','@sora.loop','@luna.wav / Velvet Afterhours','data-oct="play"','data-oct="refine"','aria-label="Track details"'])assert(trackDetail.includes(detail));
+assert(trackDetail.indexOf('oct-deep-track')<trackDetail.indexOf('oct-genealogy-first'));
+assert(trackDetail.indexOf('oct-genealogy-first')<trackDetail.indexOf('oct-royalty-summary'));
+assert.equal((family.match(/class="oct-orbit-avatar"/g)||[]).length,5);
+for(const file of ['luna.png','kai.png','milo.png','sora.png'])assert(family.includes('assets/creators/'+file));
+for(const match of trackDetail.matchAll(/class="oct-orbit-avatar" href="([^"]+)"/g))assert(fs.existsSync(path.join(root,'dist',match[1])));
+action(deepTrack,'refine','sora-dreamslow');
+assert.equal(deepTrack.elements.get('#oct-voice-sheet').open,true);
+assert.match(deepTrack.elements.get('#oct-voice-sheet').innerHTML,/Co-create with Kiki Static/);
+console.log('PASS: graph avatar assets, immediate deep track details, lineage-first layout and co-create handoff.');
 
 // User titles persist without changing identity, lineage, settings or artwork treatment.
 const named=session({}, {october:true});submit(named,'Make it dreamy.');
