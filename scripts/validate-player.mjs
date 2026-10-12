@@ -310,7 +310,7 @@ console.log('PASS: complete genealogy, source isolation, custom effects saved as
 const sheet=session({}, {october:true});
 action(sheet,'voice');
 assert.equal(sheet.elements.get('#oct-voice-sheet').open,true);
-assert.match(sheet.elements.get('#oct-voice-sheet').innerHTML,/How should it sound/);
+assert.doesNotMatch(sheet.elements.get('#oct-voice-sheet').innerHTML,/How should it sound|placeholder=|oct-suggestions|Make this track yours|Speak or type a request/);
 assert.match(sheet.elements.get('#oct-voice-status').textContent,/unavailable/);
 action(sheet,'close-sheet');assert.equal(sheet.elements.get('#oct-voice-sheet').open,false);
 action(sheet,'prompt-open');

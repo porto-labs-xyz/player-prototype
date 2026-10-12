@@ -143,3 +143,7 @@ The fixed command dock sits at the bottom beneath the player, with Voice command
 ## Expressive creator profile pictures, 12 October 2026
 
 The user requested fun profile pictures in varied styles. Eight fictional creators now have distinct generated cartoon, photorealistic, abstract cut-paper, clay, pixel-art, collage, ink and felt identities, replacing initial-only avatars. The original four portraits and neutral local-user silhouette remain. Circular crops share the same image across track cards, posts, discovery and profiles. These user-selected artwork styles are an explicit exception to the restrained brand-art guidance, scoped to creator identity rather than interface tokens. The portraits do not represent actual users. Built-in image generation prompts are preserved in the prototype docs.
+
+## Quiet voice input, 12 October 2026
+
+The user requested discovery through use. Remove the How should it sound heading, Talk to Porto eyebrow, instructional labels, textarea placeholder and suggested prompt chips from the pop-out. Keep an empty editable input, voice control, submit arrow, source track identity and close action. Preserve nonvisual accessible labels, live recognition/error feedback and a brief speech-processing disclosure. This supersedes the suggestion-heavy composer guidance above; voice and text remain the only transformation input.

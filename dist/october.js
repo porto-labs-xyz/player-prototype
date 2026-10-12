@@ -144,7 +144,7 @@ const PortoOctober = (() => {
     const output=document.querySelector('#oct-voice-status');if(output)output.textContent=message;
   }
   function composer() {
-    return `<form id="oct-prompt-form"><label for="oct-prompt">Make this track yours <span id="oct-source-label">· ${esc(title(selected)+(isOriginal(selected)?' · Original':''))}</span></label><div class="oct-composer"><textarea id="oct-prompt" rows="2" maxlength="300" placeholder="Slow it down. Make it dreamy.">${esc(prompt)}</textarea><button class="oct-round" type="submit" aria-label="Create a version">↑</button></div><div class="oct-composer-tools">${btn('voice',wave(true)+'<span class="oct-voice-label">Voice command</span>','','text-button')}<span>Speak or type a request</span></div><p id="oct-voice-status" class="oct-status" role="status"></p><div class="oct-suggestions">${Object.entries(presets).filter(([id])=>id!=='custom').map(([id,p])=>btn('prompt',p.label,id,'oct-chip')).join('')}${btn('example','Pitch up 3 semitones','Pitch up 3 semitones.','oct-chip')}${btn('example','More echo','Add more echo.','oct-chip')}${btn('example','More distortion','Add more distortion.','oct-chip')}</div><p id="oct-request-status" class="oct-status" role="status">${esc(notice)}</p><p class="oct-voice-privacy">Speech uses your browser’s recognition service, which may process audio online. Review your text before submitting. Sound changes use browser audio effects, with no AI transformation.</p></form>`;
+    return `<form id="oct-prompt-form"><div class="oct-composer"><textarea id="oct-prompt" aria-label="Your request" rows="2" maxlength="300">${esc(prompt)}</textarea><button class="oct-round" type="submit" aria-label="Create a version">↑</button></div><div class="oct-composer-tools">${btn('voice',wave(true)+'<span class="oct-voice-label">Voice command</span>','','text-button')}</div><p id="oct-voice-status" class="oct-status" role="status"></p><p id="oct-request-status" class="oct-status" role="status">${esc(notice)}</p><p class="oct-voice-privacy">Speech may be processed online by your browser’s recognition service.</p></form>`;
   }
   function closeSheet(){
     voice?.cancel();const sheet=document.querySelector('#oct-voice-sheet');if(sheet?.open)sheet.close();
@@ -154,7 +154,7 @@ const PortoOctober = (() => {
     const sheet=document.querySelector('#oct-voice-sheet');sheetTrigger=trigger||sheetTrigger;
     if(!sheet.open){
       if(notice.startsWith('Your version is ready'))notice='';
-      sheet.innerHTML=`<div class="oct-sheet-heading"><div><p class="oct-kicker">TALK TO PORTO</p><h2 id="oct-sheet-title">How should it sound?</h2></div><button type="button" class="icon-button" data-oct="close-sheet" aria-label="Close voice input">×</button></div>${composer()}`;
+      sheet.innerHTML=`<div class="oct-sheet-heading"><span id="oct-source-label">${esc(title(selected)+(isOriginal(selected)?' · Original':''))}</span><button type="button" class="icon-button" data-oct="close-sheet" aria-label="Close voice input">×</button></div>${composer()}`;
       sheet.showModal();document.querySelectorAll('[aria-controls="oct-voice-sheet"]').forEach(b=>b.setAttribute('aria-expanded','true'));
     }
     if(record){voiceRoute=location.hash;voice.start(prompt);syncVoice();sheet.querySelector('[data-oct="voice"]')?.focus();}
@@ -167,7 +167,7 @@ const PortoOctober = (() => {
   }
   function syncPlayback() {
     const sourceLabel=document.querySelector('#oct-source-label');
-    if(sourceLabel)sourceLabel.textContent='· '+(title(selected)+(isOriginal(selected)?' · Original':''));
+    if(sourceLabel)sourceLabel.textContent=(title(selected)+(isOriginal(selected)?' · Original':''));
     document.querySelectorAll('[data-oct="play"]').forEach(b=>{
       const active=current.concept&&current.variationId===b.dataset.id;
       b.innerHTML=(active&&playing?pauseIcon:playIcon)+(b.classList.contains('oct-round')?'':active&&playing?' Pause':' Play');
@@ -344,7 +344,7 @@ const PortoOctober = (() => {
       if(a==='lineage')lineage(id);
       if(a==='share')share(id);
       if(a==='payout')payout(id);
-      if(a==='refine'){selected=id;prompt='';notice='Your new version will stay linked to this track.';openSheet(false,b);}
+      if(a==='refine'){selected=id;prompt='';notice='';openSheet(false,b);}
       if(a==='voice')openSheet(true,b);
       if(a==='prompt-open')openSheet(false,b);
       if(a==='close-sheet')closeSheet();
