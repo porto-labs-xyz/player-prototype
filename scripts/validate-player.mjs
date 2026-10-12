@@ -489,3 +489,24 @@ const lightProgress=session({}, {october:true});
 lightProgress.run(`var inactiveWave={dataset:{wave:'luna-dreamy'},querySelector(){throw Error('Inactive waveform touched')},querySelectorAll(){throw Error('Inactive bars touched')}};document.querySelectorAll=selector=>selector==='[data-wave]'?[inactiveWave]:[]`);
 for(let i=0;i<8;i++)lightProgress.elements.get('#audio').events.timeupdate();
 console.log('PASS: progress ticks skip inactive waveform controls and bars.');
+
+// A ready source must start inside the click, without crossing an await boundary.
+const gesture=session({}, {october:true});
+const ga=gesture.elements.get('#audio');
+gesture.run('PortoWarp.available=()=>true;PortoOctober.prepareAudio=()=>true');
+let inGesture=true,authorized=false;
+ga.play=function(){
+ if(inGesture)authorized=true;
+ if(!authorized)return Promise.reject(new Error('NotAllowedError'));
+ this.paused=false;this.playCalls++;this.events.play?.();this.events.playing?.();return Promise.resolve();
+};
+action(gesture,'play','original');
+assert.equal(ga.playCalls,1,'ready original starts within click');inGesture=false;
+await new Promise(setImmediate);
+inGesture=true;action(gesture,'play','luna-dreamy');
+assert.equal(ga.playCalls,2,'ready variation switches within click');inGesture=false;
+await new Promise(setImmediate);
+action(gesture,'play','luna-dreamy');assert.equal(ga.paused,true);
+inGesture=true;action(gesture,'play','luna-dreamy');assert.equal(ga.playCalls,3);
+inGesture=false;await new Promise(setImmediate);
+console.log('PASS: ready originals, variation switches and resume call native play inside the user gesture.');

@@ -205,9 +205,10 @@ const PortoOctober = (() => {
     document.querySelectorAll('[data-oct="play"]').forEach(b=>{
       const active=current.concept&&current.variationId===b.dataset.id;
       const engaged=active&&(playing||preparingPlayback);
-      const controlState=engaged?'pause':'play';
+      const loading=active&&preparingPlayback;
+      const controlState=loading?'loading':engaged?'pause':'play';
       if(b.dataset.playState!==controlState){
-        b.innerHTML=(engaged?pauseIcon:playIcon)+(b.classList.contains('oct-round')?'':engaged?' Pause':' Play');
+        b.innerHTML=(engaged?pauseIcon:playIcon)+(b.classList.contains('oct-round')?'':loading?' Preparing…':engaged?' Pause':' Play');
         b.dataset.playState=controlState;
       }
       b.setAttribute('aria-label',`${active&&preparingPlayback?'Cancel loading':engaged?'Pause':'Play'} ${title(b.dataset.id)}`);

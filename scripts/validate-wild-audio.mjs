@@ -13,7 +13,8 @@ function buffer(){
  const raw={length:3,duration:3/44100,numberOfChannels:1,sampleRate:44100,getChannelData:()=>samples,copyToChannel:value=>{samples=value}};
  return {set reverse(value){if(value)samples.reverse()},get:()=>raw,dispose(){this.disposed=true}};
 }
-const audio={src:'original.mp3',currentTime:42,dataset:{originalSource:'original.mp3'},load(){this.currentTime=0}};
+let unlockCalls=0,pauseCalls=0;
+const audio={src:'original.mp3',currentTime:42,dataset:{originalSource:'original.mp3'},load(){this.currentTime=0},play(){unlockCalls++;return Promise.resolve()},pause(){pauseCalls++}};
 const Tone={
  start(){throw Error('Playback must not use a live context')},
  Player:Node,PitchShift:Node,Filter:Node,Distortion:Node,FeedbackDelay:Node,Tremolo:Node,Limiter:Node,
@@ -23,8 +24,9 @@ const Tone={
 const context=vm.createContext({console,Blob,URL:{createObjectURL(blob){created.push(blob);return 'blob:render-'+created.length},revokeObjectURL(url){revoked.push(url)}},Tone,audio});
 vm.runInContext(code,context);let current=true;context.isCurrent=()=>current;
 await vm.runInContext('PortoWarp.prepare(audio,null,isCurrent)',context);
-assert.equal(decodeCount,0);assert.equal(audio.dataset.warp,'native');
+assert.equal(decodeCount,0);assert.equal(audio.dataset.warp,'native');assert.equal(unlockCalls,0);
 const pending=vm.runInContext('PortoWarp.prepare(audio,{reverse:1},isCurrent)',context);
+assert.equal(unlockCalls,1);assert.equal(pauseCalls,1); // gesture primed before decode awaits
 await new Promise(setImmediate);current=false;release();await pending;
 assert.equal(audio.src,'original.mp3');assert.equal(audio.currentTime,42);assert.equal(renderCount,0);
 current=true;
@@ -50,3 +52,14 @@ const second=vm.runInContext('PortoWarp.prepare(audio,{pitch:5},isCurrent)',cont
 finish();await first;await new Promise(setImmediate);finish();await second;
 assert.equal(JSON.parse(audio.dataset.warpSettings).pitch,5);assert(nodes.every(n=>n.disposed));
 console.log('PASS: native originals, offline effects, reversed PCM, cancelled/serialized rendering, position preservation, cache bounds, quantization and node/context cleanup.');
+
+// Returning to a cached track must not wait behind a cancelled expensive render.
+firstCurrent=true;
+const blocking=vm.runInContext('PortoWarp.prepare(audio,{pitch:6},firstCurrent)',context);
+await new Promise(setImmediate);firstCurrent=false;
+const cachedSource=audio.src,cachedUnlocks=unlockCalls;
+audio.dataset.preparedKey='';audio.src='original.mp3';
+const ready=vm.runInContext('PortoWarp.prepare(audio,{pitch:5},isCurrent)',context);
+assert.equal(ready,true);assert.equal(audio.src,cachedSource);assert.equal(unlockCalls,cachedUnlocks);
+finish();await blocking;assert.equal(audio.src,cachedSource);
+console.log('PASS: gesture priming pauses synchronously before rendering; cached switches bypass pending renders.');

@@ -98,6 +98,8 @@ const PortoWarp = (() => {
   }
   async function editedSource(url,values,isCurrent){
     const key=url+'|'+JSON.stringify(values);
+    if(!isCurrent())return null;
+    if(rendered.has(key))return rendered.get(key);
     const job=renderQueue.then(async()=>{
       if(!isCurrent())return null;
       if(rendered.has(key))return rendered.get(key);
@@ -109,25 +111,32 @@ const PortoWarp = (() => {
     });
     renderQueue=job.catch(()=>{});return job;
   }
-  async function prepare(element,settings,isCurrent=()=>true) {
+  function prepare(element,settings,isCurrent=()=>true) {
     if(!available()||!isCurrent())return false;
     media=element;
     const values=sanitize(settings||defaults),original=element.dataset.originalSource||element.src;
     const key=original+'|'+JSON.stringify(values);
-    if(element.dataset.preparedKey!==key){
-      element.dataset.preparingAudio='true';
-      try{
-        const next=settings?await editedSource(original,values,isCurrent):original;
-        if(!isCurrent()||!next)return false;
-        if(element.src!==next){const position=element.currentTime;element.src=next;element.load();element.currentTime=position;}
-        element.dataset.preparedKey=key;
-      }finally{if(isCurrent())element.dataset.preparingAudio='false';}
-    }
-    element.preservesPitch=true;element.playbackRate=values.speed;
-    element.dataset.warp=settings?'rendered':'native';
-    element.dataset.audioProcessors='';element.dataset.audioPlayback='native';
-    element.dataset.warpSettings=JSON.stringify(values);
-    return true;
+    const install=next=>{
+      if(!isCurrent()||!next)return false;
+      if(element.src!==next){const position=element.currentTime;element.src=next;element.load();element.currentTime=position;}
+      element.dataset.preparedKey=key;
+      element.preservesPitch=true;element.playbackRate=values.speed;
+      element.dataset.warp=settings?'rendered':'native';
+      element.dataset.audioProcessors='';element.dataset.audioPlayback='native';
+      element.dataset.warpSettings=JSON.stringify(values);
+      element.dataset.preparingAudio='false';
+      return true;
+    };
+    // Ready sources stay synchronous, so play remains part of the user's tap.
+    if(element.dataset.preparedKey===key)return install(element.src);
+    if(!settings)return install(original);
+    if(rendered.has(key))return install(rendered.get(key));
+    // Authorize this same media element while still inside the explicit Play
+    // gesture. Pause immediately, before any sound, while rendering completes.
+    const unlock=element.play();element.pause();unlock?.catch(()=>{});
+    element.dataset.preparingAudio='true';
+    return Promise.resolve(editedSource(original,values,isCurrent)).then(install)
+      .finally(()=>{if(isCurrent())element.dataset.preparingAudio='false';});
   }
   return {available,chopSamples,crushSamples,wavBytes,sanitize,parseRequest,defaults,presets,prepare};
 })();
