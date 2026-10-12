@@ -33,11 +33,11 @@ const PortoGeneGraph = (() => {
       const a=project(byId.get(n.parent)),b=project(n);
       return `<line data-from="${esc(n.parent)}" data-to="${esc(n.id)}" class="${ancestry.has(n.id)?'on-path':''}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" marker-end="url(#gene-arrow)"/>`;
     }).join('');
-    const dots=points.map((n,i)=>{
-      const p=project(n),r=n.parent?24:34;
-      return `<a class="oct-orbit-node ${n.id===selected?'selected':''} ${!n.parent?'root':''} ${ancestry.has(n.id)?'on-path':''}" href="${esc(n.href)}" data-node="${esc(n.id)}" data-x="${n.x}" data-y="${n.y}" data-z="${n.z}" data-radius="${r}" transform="translate(${p.x} ${p.y}) scale(${p.scale})" aria-label="${esc(n.title+', '+n.handle+', '+n.plays+' plays, '+n.royalty+' demo royalties'+(n.parent?', derived from '+byId.get(n.parent).title:', original'))}" ${n.id===selected?'aria-current="page"':''}><title>${esc(n.title+' · '+n.handle+' · '+n.plays+' plays · '+n.royalty+' demo royalties')}</title><circle class="oct-orbit-halo" r="${r+9}"/><circle class="oct-orbit-core" r="${r}" fill="url(#gene-sphere-${i%4})"/><text y="5" class="oct-orbit-number">${n.parent?esc(n.number):'001'}</text><text y="${r+27}" class="oct-orbit-title">${esc(n.parent?'/'+n.number:'Original')}</text><text y="${r+44}" class="oct-orbit-meta">${esc(n.handle)}</text></a>`;
+    const dots=points.map(n=>{
+      const p=project(n),r=n.parent?32:40;
+      return `<a class="oct-orbit-node ${n.id===selected?'selected':''} ${!n.parent?'root':''} ${ancestry.has(n.id)?'on-path':''}" href="${esc(n.href)}" data-oct="track-details" data-id="${esc(n.id)}" data-node="${esc(n.id)}" data-x="${n.x}" data-y="${n.y}" data-z="${n.z}" data-radius="${r}" transform="translate(${p.x} ${p.y}) scale(${p.scale})" aria-label="${esc(n.title+', '+n.handle+', '+n.plays+' plays, '+n.royalty+' demo royalties'+(n.parent?', derived from '+byId.get(n.parent).title:', original'))}" ${n.id===selected?'aria-current="page"':''}><title>${esc(n.title+' · '+n.handle+' · '+n.plays+' plays · '+n.royalty+' demo royalties')}</title><circle class="oct-orbit-halo" r="${r+9}"/><foreignObject x="${-r}" y="${-r}" width="${r*2}" height="${r*2}" class="oct-orbit-picture"><div xmlns="http://www.w3.org/1999/xhtml" class="oct-orbit-art">${n.artwork}</div></foreignObject><text y="${r+27}" class="oct-orbit-title">${esc(n.parent?'/'+n.number:'Original')}</text><text y="${r+44}" class="oct-orbit-meta">${esc(n.handle)}</text></a>`;
     }).join('');
-    return `<div class="oct-orbit"><div class="oct-orbit-toolbar"><span><i></i>Original <i></i>Version <i></i>Selected ancestry</span><div><button type="button" data-graph-action="out" aria-label="Zoom graph out">−</button><button type="button" data-graph-action="in" aria-label="Zoom graph in">+</button><button type="button" data-graph-action="reset">Reset view</button></div></div><svg class="oct-orbit-svg" viewBox="0 0 800 600" role="group" aria-label="3D song genealogy. Drag to rotate. Arrow keys rotate, plus and minus zoom. Select a node to explore its track." tabindex="0"><defs><marker id="gene-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke"/></marker>${['#EE6251','#8D78B9','#72b9ad','#6E9DC1'].map((color,i)=>`<radialGradient id="gene-sphere-${i}" cx="30%" cy="25%" r="80%"><stop offset="0" stop-color="#fff"/><stop offset=".22" stop-color="${color}"/><stop offset="1" stop-color="#17151f"/></radialGradient>`).join('')}</defs><ellipse class="oct-orbit-plane" cx="400" cy="300" rx="340" ry="135"/><ellipse class="oct-orbit-plane" cx="400" cy="300" rx="190" ry="260" transform="rotate(-35 400 300)"/><g class="oct-orbit-edges">${edges}</g><g class="oct-orbit-nodes">${dots}</g></svg><div class="oct-orbit-caption">Drag to orbit · Select a version <span>${nodes.length} connected tracks</span></div></div>`;
+    return `<div class="oct-orbit"><div class="oct-orbit-toolbar"><span><i></i>Original <i></i>Version <i></i>Selected ancestry</span><div><button type="button" data-graph-action="out" aria-label="Zoom graph out">−</button><button type="button" data-graph-action="in" aria-label="Zoom graph in">+</button><button type="button" data-graph-action="reset">Reset view</button></div></div><svg class="oct-orbit-svg" viewBox="0 0 800 600" role="group" aria-label="3D song genealogy. Drag to rotate. Arrow keys rotate, plus and minus zoom. Select a node for track details." tabindex="0"><defs><marker id="gene-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke"/></marker></defs><ellipse class="oct-orbit-plane" cx="400" cy="300" rx="340" ry="135"/><ellipse class="oct-orbit-plane" cx="400" cy="300" rx="190" ry="260" transform="rotate(-35 400 300)"/><g class="oct-orbit-edges">${edges}</g><g class="oct-orbit-nodes">${dots}</g></svg><div class="oct-orbit-caption">Drag to orbit · Select a version <span>${nodes.length} connected tracks</span></div></div>`;
   }
   let redraw=()=>{};
   window.addEventListener('resize',()=>redraw());
@@ -66,5 +66,13 @@ const PortoGeneGraph = (() => {
       draw();
     });
   }
-  return {layout,project,markup,mount};
+  function select(id) {
+    document.querySelectorAll('.oct-orbit').forEach(host=>{
+      const edges=[...host.querySelectorAll('[data-from]')],ancestry=new Set([id]);let next=id;
+      while(edges.some(e=>e.dataset.to===next)){next=edges.find(e=>e.dataset.to===next).dataset.from;if(ancestry.has(next))break;ancestry.add(next);}
+      host.querySelectorAll('[data-node]').forEach(n=>{n.classList.toggle('selected',n.dataset.node===id);n.classList.toggle('on-path',ancestry.has(n.dataset.node));if(n.dataset.node===id)n.setAttribute('aria-current','true');else n.removeAttribute('aria-current');});
+      edges.forEach(e=>e.classList.toggle('on-path',ancestry.has(e.dataset.to)));
+    });
+  }
+  return {layout,project,markup,mount,select};
 })();

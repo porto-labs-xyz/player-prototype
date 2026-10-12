@@ -136,7 +136,7 @@ console.log('PASS: 14 artist profiles, unique slugs, multi-release grouping, emp
 
 // October flows share the actual player but keep synthetic previews and money separate.
 const october=session({}, {october:true});
-const action=(s,oct,id='')=>s.documentEvents.click.forEach(fn=>fn({target:{closest:selector=>selector==='[data-oct]'?{dataset:{oct,id},focus(){}}:null}}));
+const action=(s,oct,id='')=>s.documentEvents.click.forEach(fn=>fn({preventDefault(){},target:{closest:selector=>selector==='[data-oct]'?{dataset:{oct,id},focus(){}}:null}}));
 const submit=(s,text)=>{action(s,'prompt-open');s.run("document.querySelector('#oct-prompt')").value=text;s.documentEvents.submit.forEach(fn=>fn({target:{id:'oct-prompt-form'},preventDefault(){}}))};
 assert.equal(october.run('current.variationId'),'original');
 assert.equal(october.elements.get('#audio').src,'');
@@ -342,3 +342,14 @@ assert.notDeepEqual(vm.runInContext('PortoGeneGraph.project({x:100,y:50,z:70},0,
 sheet.run("PortoOctober.view('original/dream-culture')");action(sheet,'prompt-open');
 assert.match(sheet.elements.get('#oct-voice-sheet').innerHTML,/Co-create with June Arcade/);
 console.log('PASS: graph parent edges, every version, deep-family projection, independent demo royalties and source-specific co-create heading.');
+
+assert.equal((family.match(/class="oct-orbit-picture"/g)||[]).length,5);
+assert.doesNotMatch(family,/gene-sphere|radialGradient/);
+action(dna,'track-details','sora-dreamslow');
+assert.equal(dna.elements.get('#dialog').open,true);
+const trackDetail=dna.elements.get('#dialog-content').innerHTML;
+for(const detail of ['Reformat/005','@sora.loop','Reformat/002','Royalties · Demo','data-oct="play"','data-oct="refine"'])assert(trackDetail.includes(detail));
+action(dna,'refine','sora-dreamslow');
+assert.equal(dna.elements.get('#dialog').open,false);assert.equal(dna.elements.get('#oct-voice-sheet').open,true);
+assert.match(dna.elements.get('#oct-voice-sheet').innerHTML,/Co-create with Kiki Static/);
+console.log('PASS: circular version artwork, node detail card, source lineage and co-create handoff.');

@@ -238,7 +238,7 @@ const PortoOctober = (() => {
     selected=id;const source=sourceFor(id),root=originalId(source.id),versions=all().filter(v=>v.source===source.id);
     const familyIds=[root,...versions.map(v=>v.id)];
     const familyRoyalty=familyIds.reduce((sum,nodeId)=>sum+demoRoyalty(nodeId),0);
-    const graph=PortoGeneGraph.markup(familyIds.map(nodeId=>({id:nodeId,parent:find(nodeId)?.parent,href:routeFor(nodeId),title:title(nodeId),number:edition(nodeId),handle:handle(nodeId),plays:playTotal(nodeId).toLocaleString('en-GB'),royalty:money(demoRoyalty(nodeId))})),id);
+    const graph=PortoGeneGraph.markup(familyIds.map(nodeId=>({id:nodeId,parent:find(nodeId)?.parent,href:routeFor(nodeId),title:title(nodeId),artwork:artwork(nodeId,'oct-orbit-cover'),number:edition(nodeId),handle:handle(nodeId),plays:playTotal(nodeId).toLocaleString('en-GB'),royalty:money(demoRoyalty(nodeId))})),id);
     const ancestors=new Set([id]);let parent=find(id);while(parent){ancestors.add(parent.parent);parent=find(parent.parent);}
     const node=(nodeId)=>{
       const v=find(nodeId),children=versions.filter(v=>v.parent===nodeId);
@@ -247,6 +247,11 @@ const PortoOctober = (() => {
     return `<a class="back" href="#feed">← Back to music</a><div class="oct-dna-heading"><div><p class="oct-kicker">TRACK DNA / ${source.artist}</p><h1>${title(id)}</h1><p>${find(id)?presets[find(id).preset].label:'Original'} · ${handle(id)}</p></div><div class="oct-dna-total">${countLabel(id)}<small>Demo total · <span id="oct-local-plays">${state.plays[id]||0} in this browser</span></small></div></div>
       <div class="oct-dna-intro">${artwork(id,'oct-dna-cover')}<div>${wave(false,id)}<div class="actions">${btn('play',playIcon+' Play',id,'primary')}${btn('refine','Use voice or text',id)}${find(id)?.creator==='you'?btn('share',find(id).published?'Shared to feed':'Share to feed',id):''}</div><p class="oct-note">${source.title} · ${source.artist} · ${source.genre}<br>Audio: Kevin MacLeod · CC BY 4.0</p></div></div>
       <div class="oct-royalty-summary"><div><span>Royalties generated <b>DEMO</b></span><strong>${money(familyRoyalty)}</strong><small>Across the original and all versions</small></div><div><span>This ${isOriginal(id)?'original':'version'} <b>DEMO</b></span><strong>${money(demoRoyalty(id))}</strong><small>${esc(title(id))}</small></div><p>Illustrative amounts, not earned or paid. No live royalty ledger is connected.</p></div><div class="oct-dna-workspace"><section class="oct-genealogy" aria-label="Complete song genealogy"><div class="oct-section-heading"><div><p class="oct-kicker">ONE ORIGINAL. EVERY BRANCH.</p><h2>Genealogy</h2></div><span>${versions.length} versions + original</span></div>${graph}<details class="oct-gene-list"><summary>All versions · plays & royalties</summary><p class="oct-note">Play totals include demo counts and browser-local listens. Royalty figures are separate illustrative examples, not calculated from plays.</p><ul class="oct-gene-tree">${node(root)}</ul></details></section></div>${footnote()}`;
+  }
+  function trackDetails(id) {
+    if(!valid(id))return;
+    const source=sourceFor(id),v=find(id);PortoGeneGraph.select(id);
+    modal(`<div class="oct-track-detail">${artwork(id,'oct-detail-cover')}<p class="oct-kicker">${esc(source.artist)} · ${v?presets[v.preset].label:'Original'}</p><h2>${esc(title(id))}</h2><p>${esc(handle(id))}</p><div class="oct-detail-stats"><div>${countLabel(id)}<small>Demo total</small></div><div><strong>${money(demoRoyalty(id))}</strong><small>Royalties · Demo</small></div></div>${v?`<p class="oct-detail-parent">From <a href="${routeFor(v.parent)}">${esc(title(v.parent))} ↗</a></p>`:''}<div class="actions">${btn('play',playIcon+' Play',id,'primary')}${btn('refine','Co-create',id)}</div><a class="oct-detail-open" href="${routeFor(id)}">Open track & genealogy ↗</a><p class="oct-note">Illustrative royalties, not earned or paid.<br>Audio: Kevin MacLeod · CC BY 4.0</p></div>`);
   }
   function lineage(id){location.hash=routeFor(id).slice(1);render();}
   function share(id) {
@@ -344,6 +349,8 @@ const PortoOctober = (() => {
       const b=e.target.closest('[data-oct]');if(!b)return;
       const {oct:a,id}=b.dataset;
       if(a!=='voice')voice?.cancel();
+      if(a==='track-details'){e.preventDefault();trackDetails(id);return;}
+      if((a==='play'||a==='refine')&&document.querySelector('#dialog').open)document.querySelector('#dialog').close();
       if(a==='play'){if(/^(#original|#variation|#listening)/.test(location.hash)&&selected!==id){location.hash=routeFor(id).slice(1);genealogy(id);render();}play(id);}
       if(a==='about')about();
       if(a==='lineage')lineage(id);
