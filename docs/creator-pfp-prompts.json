@@ -1,0 +1,47 @@
+{
+  "generator": "Built-in image_gen",
+  "date": "2026-10-12",
+  "disclosure": "AI-generated fictional creator identities. User-requested expressive artwork is scoped to avatars, not shared Porto interface styling.",
+  "images": [
+    {
+      "id": "noor",
+      "file": "dist/assets/creators/noor-v2.webp",
+      "prompt": "Use case: illustration-story\nAsset type: square music-community profile picture for fictional creator noor.\nPrimary request: A cheeky lavender cartoon cat with huge pointed ears, one crooked grin and oversized orange headphones. Bold hand-drawn black outlines, flat playful shapes, lime background, zine cartoon energy.\nComposition: one centered face or character, fills about 75 percent of the square; all defining facial details inside central circle so it reads clearly at 40px circular crop. Full-bleed square image, no circle frame. Fun individual identity, expressive, distinctive.\nConstraints: no words, letters, logo, watermark, UI, border or multiple panels. One final square image."
+    },
+    {
+      "id": "ezra",
+      "file": "dist/assets/creators/ezra-v2.webp",
+      "prompt": "Use case: photorealistic-natural\nAsset type: square music-community profile picture for fictional creator ezra.\nPrimary request: A fictional adult music fan with dark brown skin, short natural curls, tiny silver earrings and a joyful spontaneous grin. Candid direct-flash analogue photography, believable skin texture, warm orange studio wall, close face portrait, stylish and unposed.\nComposition: one centered face or character, fills about 75 percent of the square; all defining facial details inside central circle so it reads clearly at 40px circular crop. Full-bleed square image, no circle frame. Fun individual identity, expressive, distinctive.\nConstraints: no words, letters, logo, watermark, UI, border or multiple panels. One final square image."
+    },
+    {
+      "id": "inez",
+      "file": "dist/assets/creators/inez-v2.webp",
+      "prompt": "Use case: stylized-concept\nAsset type: square music-community profile picture for fictional creator inez.\nPrimary request: An abstract face made from asymmetric cobalt, coral and cream cut-paper shapes, a single playful eye and wiggly mouth. Tactile torn edges, modern surreal graphic art, electric yellow background.\nComposition: one centered face or character, fills about 75 percent of the square; all defining facial details inside central circle so it reads clearly at 40px circular crop. Full-bleed square image, no circle frame. Fun individual identity, expressive, distinctive.\nConstraints: no words, letters, logo, watermark, UI, border or multiple panels. One final square image."
+    },
+    {
+      "id": "theo",
+      "file": "dist/assets/creators/theo-v2.webp",
+      "prompt": "Use case: stylized-concept\nAsset type: square music-community profile picture for fictional creator theo.\nPrimary request: A goofy mint-green clay character with a big rounded nose, tiny black bead eyes and purple over-ear headphones. Handmade plasticine fingerprints and charming imperfect sculpture, soft lilac background, stop-motion miniature photography.\nComposition: one centered face or character, fills about 75 percent of the square; all defining facial details inside central circle so it reads clearly at 40px circular crop. Full-bleed square image, no circle frame. Fun individual identity, expressive, distinctive.\nConstraints: no words, letters, logo, watermark, UI, border or multiple panels. One final square image."
+    },
+    {
+      "id": "aya",
+      "file": "dist/assets/creators/aya-v2.webp",
+      "prompt": "Use case: illustration-story\nAsset type: square music-community profile picture for fictional creator aya.\nPrimary request: An adorable mischievous pink alien wearing chunky blue headphones, two stubby antennae, pixel-art face and little fangs. Authentic crisp retro pixel art with deliberately large square pixels, midnight purple background and a few yellow star pixels.\nComposition: one centered face or character, fills about 75 percent of the square; all defining facial details inside central circle so it reads clearly at 40px circular crop. Full-bleed square image, no circle frame. Fun individual identity, expressive, distinctive.\nConstraints: no words, letters, logo, watermark, UI, border or multiple panels. One final square image."
+    },
+    {
+      "id": "ren",
+      "file": "dist/assets/creators/ren-v2.webp",
+      "prompt": "Use case: illustration-story\nAsset type: square music-community profile picture for fictional creator ren.\nPrimary request: A surreal playful editorial collage portrait: black-and-white cutout photograph of a fictional adult face with a broad smile, one eye replaced by a sunflower and the other by a cobalt painted circle. Torn paper texture, punchy coral background, simple iconic composition.\nComposition: one centered face or character, fills about 75 percent of the square; all defining facial details inside central circle so it reads clearly at 40px circular crop. Full-bleed square image, no circle frame. Fun individual identity, expressive, distinctive.\nConstraints: no words, letters, logo, watermark, UI, border or multiple panels. One final square image."
+    },
+    {
+      "id": "cleo",
+      "file": "dist/assets/creators/cleo-v2.webp",
+      "prompt": "Use case: illustration-story\nAsset type: square music-community profile picture for fictional creator cleo.\nPrimary request: A charming little black ink ghost-creature with two giant curious eyes, scribbly arms and a wonky crown. Loose expressive brush-pen drawing on warm cream paper, splash of tomato red behind the head, underground music-zine character, bold readable silhouette.\nComposition: one centered face or character, fills about 75 percent of the square; all defining facial details inside central circle so it reads clearly at 40px circular crop. Full-bleed square image, no circle frame. Fun individual identity, expressive, distinctive.\nConstraints: no words, letters, logo, watermark, UI, border or multiple panels. One final square image."
+    },
+    {
+      "id": "nico",
+      "file": "dist/assets/creators/nico-v2.webp",
+      "prompt": "Use case: stylized-concept\nAsset type: square music-community profile picture for fictional creator nico.\nPrimary request: A fuzzy orange felt monster with oversized round turquoise glasses and a delighted toothy smile. Handmade needle-felt wool fibers, round friendly face, tactile craft photography, saturated sky-blue background.\nComposition: one centered face or character, fills about 75 percent of the square; all defining facial details inside central circle so it reads clearly at 40px circular crop. Full-bleed square image, no circle frame. Fun individual identity, expressive, distinctive.\nConstraints: no words, letters, logo, watermark, UI, border or multiple panels. One final square image."
+    }
+  ]
+}

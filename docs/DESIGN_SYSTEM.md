@@ -110,14 +110,14 @@ Use 44px primary controls, native dialogs, visible keyboard focus, explicit labe
 
 ## Feed and voice revision, 12 October 2026
 
-The latest home-page revision opens Kiki Static’s artist profile. The feed remains a separate primary destination. Use a native horizontal scrolling row of square Reformat cards with Original first, followed by creator variations. Place the circular creator photo and a 44px play control over each cover. The active card has a violet border, with coral marking elapsed waveform bars. Profile photos link to their creators; the local user uses a neutral silhouette instead of an invented likeness.
+The latest home-page revision returns the feed to the root URL and #home. Kiki Static remains the first selected source and a discoverable artist. Use a native horizontal scrolling row of square track cards with Reformat Original first, followed by a mix of artists and creator versions. Place the circular creator photo and a 44px play control over each cover. The active card has a violet border, with coral marking elapsed waveform bars. Profile photos link to their creators; the local user uses a neutral silhouette instead of an invented likeness.
 
 Keep the request composer directly below the row. The microphone pulses while starting or listening, with text for starting, listening, stopping and failures. Reduced-motion mode uses a static outline. The microphone never starts on page load, navigation or a timer. A second tap stops it. Keep the editable transcript, prepared-version suggestions and speech-service disclosure visible. These changes extend the existing Porto tokens; no new shared design-system or Figma release is claimed.
 
 
 ## Numbered variation artwork, 12 October 2026
 
-Use Reformat/002, Reformat/003 and onward for variation titles. Keep Original as the source label; 001 is reserved internally. Keep Dreamy, Night drive, Slow drift and Dreamy & slow as metadata tags, not title suffixes. Each version gets a distinct, stable browser-rendered crop, colour treatment and graphic composition derived from Kiki’s source artwork. Stamp its creator handle, such as @luna.wav, directly over the image in a paper label with dark type. Keep the profile-photo link and play control visible beneath the stamp. Small thumbnails retain the treatment; the track page exposes the full cover. Local versions use @you until a real account profile exists.
+Use @username / chosen title for variation names, for example @luna.wav / Velvet Afterhours. This supersedes Reformat/002 as the primary title. Keep edition numbers as artwork badges and stable internal identifiers. Keep Original as the source label; 001 is reserved internally. Keep Dreamy, Night drive, Slow drift and Dreamy & slow as metadata tags, not title suffixes. Each version gets a distinct, stable browser-rendered crop, colour treatment and graphic composition derived from each song’s source artwork. Stamp its creator handle, such as @luna.wav, directly over the image in a paper label with dark type. Keep the profile-photo link and play control visible beneath the stamp. Small thumbnails retain the treatment; the track page exposes the full cover. Local versions use @you until a real account profile exists.
 
 These are prototype cover treatments, with no image-generation service or change to the shared brand tokens. Numbers and artwork persist through reloads and remain consistent across the listening surfaces.
 
@@ -125,3 +125,39 @@ These are prototype cover treatments, with no image-generation service or change
 ### Image-effects refinement
 
 Apply a visible image effect in addition to colour: Dreamy uses soft-focus blur and a hazy double exposure; Night drive uses shifted glitch bands; Slow drift uses directional smear and ghosting; Dreamy & slow uses liquid displacement. Effects are static and rendered with CSS/SVG. Keep creator stamps, edition numbers, mood labels, profile photos and controls crisp. The source original receives no distortion.
+
+## Multi-artist home feed, 12 October 2026
+
+The feed is the home page, superseding the earlier Kiki Static landing choice. Mix source artists across the first horizontal row. Retain Original badges, creator handles and chosen variant titles, mood tags, source-derived waveforms, creator avatars and stamped distortion/blur artwork. Genre chips filter the rotation and posts. A circular artist row exposes the existing fourteen profiles. Interleave 25 seeded posts from twelve fictional creators across eight source songs, with short authored captions and two columns on wider desktops. Local published versions lead the feed. The side column holds the voice/text composer and creator discovery; narrow screens stack the content. Additional fictional creators use distinct initial avatars; do not reuse portrait photos as different people. No live activity counters or relative timestamps are invented.
+
+## Track DNA and sound controls, 12 October 2026
+
+Remove the visible Your feed heading and its introductory copy; the existing navigation supplies context. Track artwork and titles open a full song genealogy. Show the selected artwork, mood, creator stamp and counts, then the original and every child version connected through parent lines. Include siblings and local drafts, with a distinct selected node and ancestry path. Every node has its own play action. Keep the tree semantic and keyboard navigable. Wider families scroll inside the tree on mobile instead of widening the page.
+
+Transformation is voice or text only. Do not use sliders or a numeric effect panel. Keep the genealogy full-width and expose a bottom command dock on every route. Voice command opens the input sheet and starts listening; Type a request opens the same sheet for typing. The source track, editable transcript, pulsing voice button, suggestions, submit and close actions live inside the sheet. Submitting creates a child. Keep demo-total and browser-local labels next to the headline play count. Seed counts are illustrative and must not appear as live adoption or royalty evidence.
+
+## Sticky voice command, 12 October 2026
+
+The fixed command dock sits at the bottom beneath the player, with Voice command and Type a request. Keep both readable at 320px. The pop-out anchors above the dock, has its own vertical scrolling when needed, and respects safe-area insets and dynamic viewport height. Keep prompt text at least 16px on mobile. Closing the sheet ends capture and restores focus. Voice pulse indicates recognition state, not measured microphone levels. The approved interaction is never a slider-based sound editor.
+
+## Expressive creator profile pictures, 12 October 2026
+
+The user requested fun profile pictures in varied styles. Eight fictional creators now have distinct generated cartoon, photorealistic, abstract cut-paper, clay, pixel-art, collage, ink and felt identities, replacing initial-only avatars. The original four portraits and neutral local-user silhouette remain. Circular crops share the same image across track cards, posts, discovery and profiles. These user-selected artwork styles are an explicit exception to the restrained brand-art guidance, scoped to creator identity rather than interface tokens. The portraits do not represent actual users. Built-in image generation prompts are preserved in the prototype docs.
+
+## Quiet voice input, 12 October 2026
+
+The user requested discovery through use. Remove the How should it sound heading, Talk to Porto eyebrow, instructional labels, textarea placeholder and suggested prompt chips from the pop-out. Keep an empty editable input, voice control, submit arrow, source track identity and close action. Preserve nonvisual accessible labels, live recognition/error feedback and a brief speech-processing disclosure. This supersedes the suggestion-heavy composer guidance above; voice and text remain the only transformation input.
+
+## Orbitable genealogy and co-creation, 12 October 2026
+
+The user requested Co-create with the source artist in the audio pop-out, a 3D knowledge-graph style genealogy and made-up royalty totals. The pop-out now names the current source artist, retaining the empty editable input. Genealogy uses a browser-native SVG projection of actual 3D coordinates with user-controlled orbit, zoom, reset and keyboard rotation. Directed edges follow saved parent IDs; the selected ancestry is highlighted, including forks from child versions. Every seeded version and local draft remains represented. A collapsible semantic list provides full titles, per-node plays, artwork, playback and illustrative royalties.
+
+Family and selected-track royalties show stable invented GBP figures with adjacent DEMO labels. Local drafts start at zero; local play counts do not change money. These examples do not claim earned income, creator entitlement, rights-holder allocation or a live payout ledger. Shared tokens, real source-audio attribution and voice/text-only transformation remain unchanged. This is a prototype visual pattern, not a native Figma release.
+
+## Artwork genealogy nodes, 12 October 2026
+
+The user rejected shaded sphere nodes. Every graph node now uses a circular crop of its version artwork, retaining the same cover effects as the feed. Keep version labels outside the artwork and use a thin selection ring. Selecting a node highlights its ancestry and opens a native detail dialog with full stamped artwork, title, artist, creator, parent version, plays, illustrative royalties, Play and Co-create. Dismissing returns to the same graph orientation; an explicit link opens the full track route. This supersedes the shaded-node treatment.
+
+## Creator titles, 12 October 2026
+
+Variation names now use @username / chosen title, such as @luna.wav / Velvet Afterhours. This supersedes numbered source-song names as the primary variation title. After creation, show a blank Title field with Save title; local versions also expose Rename. Keep the voice/text request field empty of instructional prompts. Apply chosen names throughout the feed, player, search and genealogy; graph nodes show the creator above the chosen title. Keep Original labels, mood tags, source-song attribution and artwork stamps. Renaming must preserve stable IDs, edition numbers, artwork effects, source audio and parent lineage. Existing unnamed drafts remain Untitled NNN until their owner names them. Local identity remains @you until real accounts exist.
