@@ -185,7 +185,7 @@ const PortoOctober = (() => {
   }
   function view(route) {
     const [name,id]=route.split('/');
-    if(name==='home')return feed();
+    if(name==='home')return artistProfile('kiki-static');
     if(name==='original')return studio('original');
     if(name==='search')return search();
     if(name==='studio')return studio();

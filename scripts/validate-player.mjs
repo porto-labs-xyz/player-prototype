@@ -138,7 +138,7 @@ const submit=(s,text)=>{s.run("document.querySelector('#oct-prompt')").value=tex
 assert.equal(october.run('current.variationId'),'original');
 assert.equal(october.elements.get('#audio').src,'');
 assert.equal(october.elements.get('#audio').playCalls,0);
-assert.match(october.run("PortoOctober.view('home')"),/Your feed/);
+assert.match(october.run("PortoOctober.view('home')"),/Kiki Static/);
 assert.match(october.run("PortoOctober.view('budget')"),/No subscription/);
 assert.doesNotMatch(october.run("support()"),/25%|treasury/);
 assert.match(october.run("PortoOctober.view('studio')"),/type="button"[^>]*data-oct="voice"/);

@@ -110,6 +110,6 @@ Use 44px primary controls, native dialogs, visible keyboard focus, explicit labe
 
 ## Feed and voice revision, 12 October 2026
 
-The feed is now the landing surface. Use a native horizontal scrolling row of square Reformat cards with Original first, followed by creator variations. Place the circular creator photo and a 44px play control over each cover. The active card has a violet border, with coral marking elapsed waveform bars. Profile photos link to their creators; the local user uses a neutral silhouette instead of an invented likeness.
+The latest home-page revision opens Kiki Static’s artist profile. The feed remains a separate primary destination. Use a native horizontal scrolling row of square Reformat cards with Original first, followed by creator variations. Place the circular creator photo and a 44px play control over each cover. The active card has a violet border, with coral marking elapsed waveform bars. Profile photos link to their creators; the local user uses a neutral silhouette instead of an invented likeness.
 
 Keep the request composer directly below the row. The microphone pulses while starting or listening, with text for starting, listening, stopping and failures. Reduced-motion mode uses a static outline. The microphone never starts on page load, navigation or a timer. A second tap stops it. Keep the editable transcript, prepared-version suggestions and speech-service disclosure visible. These changes extend the existing Porto tokens; no new shared design-system or Figma release is claimed.
