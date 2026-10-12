@@ -18,7 +18,7 @@ Saving from a music screen updates the collection controls in place, preserving 
 
 The initial selection is Reformat from the fictional Kiki Static catalogue. Playback waits for the listener to press play; initialization loads no audio source. The older catalogue remains available without altering its credits or collection state.
 
-`queueTrack` adds any album, side and track to the session queue without replacing the current track. `playQueuedTrack` consumes the queue in order before normal side progression resumes. `source` selects a local WAV or MP3 file. Playback follows each track's declared duration; seeking is shown for demo-owned copies. Automatic progression stops at the end of a side. A request counter prevents stale play promises from restoring UI state after a pause or new selection.
+`queueTrack` adds any album, side and track to the session queue without replacing the current track. `playQueuedTrack` consumes the queue in order before normal side progression resumes. `source` selects a local WAV or MP3 file. The timeline follows the media duration, with declared duration as a loading fallback; every listener can seek in the fixed player. Automatic progression stops at the end of a side. A request counter prevents stale play promises from restoring UI state after a pause or new selection.
 
 The live badge is simulated. It pulses after `playing`, and stops on waiting, stalled, loadstart, pause, error or ended events. The badge displays the fictional node identifier LND-001 and DEMO NODE. Audio-event handling demonstrates player state, not peer-to-peer delivery or network attestation.
 
@@ -34,7 +34,7 @@ Three releases use original synthesized 24-second WAV studies. Six use Kevin Mac
 
 ## Purchase presentation
 
-`buyingOptions` renders physical vinyl before digital-only purchase controls on every record. `purchase(id, format)` opens the vinyl destination explanation or the digital demo confirmation. The catalogue has no connected physical retailers or stock, so the vinyl path has no external checkout and never writes ownership. Only the explicit digital confirmation updates `porto-owned`. Existing demo ownership preserves seeking and credited downloads. Saving remains independent of ownership.
+`buyingOptions` renders physical vinyl before digital-only purchase controls on every record. `purchase(id, format)` opens the vinyl destination explanation or the digital demo confirmation. The catalogue has no connected physical retailers or stock, so the vinyl path has no external checkout and never writes ownership. Only the explicit digital confirmation updates `porto-owned`. Existing demo ownership preserves credited downloads. Saving remains independent of ownership.
 
 ## Hosting
 
