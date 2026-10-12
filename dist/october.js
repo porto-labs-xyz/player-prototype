@@ -131,7 +131,7 @@ const PortoOctober = (() => {
   }
   const sound = id => sourceFor(id).audio[typeof PortoWarp!=='undefined'&&PortoWarp.available()?'original':presets[find(id)?.preset]?.file||'original'];
   const wave = (small=false,id=selected) => `<span class="oct-wave ${small?'small':''}" ${small?'':`data-wave="${esc(id)}"`} aria-hidden="true">${(small?[.25,.55,.9,.4,.75,1,.55,.8,.3]:sound(id).peaks).map((p,i)=>`<i style="--h:${Math.max(8,Math.round(p*100))}%;--delay:${i*.065}s"></i>`).join('')}</span>`;
-  const avatar = id => `<img class="oct-avatar" loading="lazy" src="assets/${isOriginal(id)?sourceFor(id).art:id==='you'?'creators/you.svg':`creators/${id}.${['luna','kai','milo','sora'].includes(id)?'png':'svg'}`}" alt="">`;
+  const avatar = id => `<img class="oct-avatar" loading="lazy" src="assets/${isOriginal(id)?sourceFor(id).art:id==='you'?'creators/you.svg':`creators/${id}${['luna','kai','milo','sora'].includes(id)?'':'-v2'}.${['luna','kai','milo','sora'].includes(id)?'png':'webp'}`}" alt="">`;
   let voice, voiceRoute='', sheetTrigger=null;
   function syncVoice() {
     const {status,message}=voice?.state||{status:'idle',message:''};

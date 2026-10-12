@@ -139,3 +139,7 @@ Transformation is voice or text only. Do not use sliders or a numeric effect pan
 ## Sticky voice command, 12 October 2026
 
 The fixed command dock sits at the bottom beneath the player, with Voice command and Type a request. Keep both readable at 320px. The pop-out anchors above the dock, has its own vertical scrolling when needed, and respects safe-area insets and dynamic viewport height. Keep prompt text at least 16px on mobile. Closing the sheet ends capture and restores focus. Voice pulse indicates recognition state, not measured microphone levels. The approved interaction is never a slider-based sound editor.
+
+## Expressive creator profile pictures, 12 October 2026
+
+The user requested fun profile pictures in varied styles. Eight fictional creators now have distinct generated cartoon, photorealistic, abstract cut-paper, clay, pixel-art, collage, ink and felt identities, replacing initial-only avatars. The original four portraits and neutral local-user silhouette remain. Circular crops share the same image across track cards, posts, discovery and profiles. These user-selected artwork styles are an explicit exception to the restrained brand-art guidance, scoped to creator identity rather than interface tokens. The portraits do not represent actual users. Built-in image generation prompts are preserved in the prototype docs.
